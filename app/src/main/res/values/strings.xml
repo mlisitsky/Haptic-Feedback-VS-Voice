@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Text Input Comparison</string>
+    <string name="main_title_text">Text Input Comparison Test</string>
+    <string name="ok_button_text">OK</string>
+    <string name="cancel_button_text">Cancel</string>
+
+    <string name="main_start_button_text">Start Comparison Test</string>
+    <string name="main_settings_button_text">Settings</string>
+    <string name="main_test_result_button_text">Results Template</string>
+
+    <string name="results_title_text">Results</string>
+    <string name="results_typing_speed_text">Typing Speed:</string>
+    <string name="results_accuracy_text">Accuracy:</string>
+    <string name="results_fastest_method_text">Fastest Method</string>
+    <string name="results_most_accurate_method_text">Most Accurate Method</string>
+    <string name="results_haptic_feedback_yes_title_text">With Haptic Feedback</string>
+    <string name="results_haptic_feedback_no_title_text">Without Haptic Feedback</string>
+    <string name="results_voice_detection_title_text">Voice Detection</string>
+    <string name="results_summary_title_text">Summary</string>
+
+    <string name="example_text">Insert Text Here</string>
+</resources>

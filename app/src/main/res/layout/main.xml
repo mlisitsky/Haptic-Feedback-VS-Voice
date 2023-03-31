@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ca.yorku.eecs.textinputcomparison.MainActivity">
+
+    <TextView
+        android:id="@+id/main_page_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#ff234567"
+        android:gravity="center_horizontal"
+        android:paddingBottom="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="20dp"
+        android:text="@string/main_title_text"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="25sp"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingTop="100dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="clickStart"
+            android:text="@string/main_start_button_text" />
+
+        <Button
+            android:id="@+id/settings_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="clickSettings"
+            android:text="@string/main_settings_button_text" />
+
+        <!-- For Testing Purposes, Will Remove This Later -->
+        <Button
+            android:id="@+id/test_results_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="clickTestResults"
+            android:text="@string/main_test_result_button_text" />
+
+    </LinearLayout>
+
+</LinearLayout>

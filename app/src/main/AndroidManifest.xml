@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TextInputComparison"
+        tools:targetApi="24">
+
+        <!-- Main activity -->
+        <activity
+            android:name="ca.yorku.eecs.textinputcomparison.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Typing test activity -->
+        <activity android:name="ca.yorku.eecs.textinputcomparison.TestActivity" />
+
+        <!-- Results activity -->
+        <activity android:name="ca.yorku.eecs.textinputcomparison.ResultsActivity" />
+
+        <!-- Settings activity -->
+        <activity android:name="ca.yorku.eecs.textinputcomparison.SettingsActivity" />
+
+    </application>
+
+</manifest>
