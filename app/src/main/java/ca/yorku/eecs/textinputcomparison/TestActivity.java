@@ -1,16 +1,26 @@
 package ca.yorku.eecs.textinputcomparison;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Vibrator;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /*
@@ -21,7 +31,8 @@ http://www.yorku.ca/mack/chi03b.html
 
 public class TestActivity extends Activity {
 
-    private final static String PHRASES_LOCATION = "R.raw.phrases.txt";
+    private final static String MYDEBUG = "MYDEBUG";
+    private final static String PHRASES_LOCATION = "R.raw.phrases";
     private final static String CURRENT_QUESTION_NUMBER = "current_question_number";
     private final static String PHRASES_LIST = "phrases_list";
     private final static String PHRASE_LIST_NUMBER_OF_CHARACTERS = "phraseList_total_characters";
@@ -43,20 +54,21 @@ public class TestActivity extends Activity {
     private final static String VOICE_RECOGNITION_START_TIME = "voice_recognition_start_time";
     private final static String VOICE_RECOGNITION_FINISH_TIME = "voice_recognition_finish_time";
     private final static String VOICE_RECOGNITION_NUMBER_OF_ERRORS = "voice_recognition_errors";
-    private final static int NUMBER_OF_QUESTIONS = 10;
+    private final static int NUMBER_OF_QUESTIONS = 5;
 
     int phraseListTotalCharacters;
     int currentQuestionNumber, currentErrors, currentPhase;
     long currentStartTime;
-
+    boolean errorFound, processingEntry;
     int hapticOffErrors, hapticOnErrors, voiceRecognitionErrors;
     long hapticOffStartTime, hapticOffFinishTime, hapticOnStartTime, hapticOnFinishTime, voiceRecognitionStartTime, voiceRecognitionFinishTime;
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
-
+    ArrayList<String> testPhraseList;
     TextView text_to_type;
     EditText input_field;
+    Vibrator vib;
+    ToneGenerator toneGenerator;
 
-    ArrayList<String> testPhraseList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,13 +79,15 @@ public class TestActivity extends Activity {
         input_field = findViewById(R.id.input_field);
 
         phraseListTotalCharacters = 0;
-        testPhraseList.addAll(generatePhraseSet());
+        testPhraseList = generatePhraseSet();
         for (String s : testPhraseList) {
             phraseListTotalCharacters += s.length();
         }
 
         text_to_type.setText(testPhraseList.get(currentQuestionNumber));
 
+        errorFound = false;
+        processingEntry = false;
         currentPhase = 0;      // Start with haptics off
         currentErrors = 0;
         currentStartTime = System.currentTimeMillis();
@@ -96,6 +110,9 @@ public class TestActivity extends Activity {
         hapticOnErrorRate = 0f;
         voiceRecognitionWPM = 0f;
         voiceRecognitionErrorRate = 0f;
+
+        toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
+        input_field.addTextChangedListener(new userInputListener());
     }
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -159,21 +176,25 @@ public class TestActivity extends Activity {
     }
 
 
-    protected List<String> generatePhraseSet() {
+    protected ArrayList<String> generatePhraseSet() {
         ArrayList<String> fullPhraseList = new ArrayList<>();
         ArrayList<String> curatedPhrases = new ArrayList<>();
 
+        Resources resources = getApplicationContext().getResources();
+        InputStream inputStream = resources.openRawResource(R.raw.phrases);
+
         currentQuestionNumber = 0;
         try {
-            FileReader fReader = new FileReader(PHRASES_LOCATION);
-            BufferedReader bReader = new BufferedReader(fReader);
+//            FileReader fReader = new FileReader(PHRASES_LOCATION);
+            InputStreamReader iReader = new InputStreamReader(inputStream);
+            BufferedReader bReader = new BufferedReader(iReader);
             String line;
 
             // Add each line of the initial phrase list text file to phrases as a String
             while ((line = bReader.readLine()) != null) {
                 fullPhraseList.add(line);
             }
-            fReader.close();
+            iReader.close();
 
             Random rand = new Random();
 
@@ -184,11 +205,119 @@ public class TestActivity extends Activity {
             }
         }
         catch (FileNotFoundException e) {
-
+            Log.i(MYDEBUG, "File not found.");
         }
         catch (IOException e) {
-
+            Log.i(MYDEBUG, "IOException");
         }
         return curatedPhrases;
     }
+
+    protected float calculateWPM(long millisTime) {
+        long secondsTime = millisTime/1000;
+
+        return (secondsTime / 60) / NUMBER_OF_QUESTIONS;
+    }
+
+    protected float calculateErrorRate(int errors) {
+        int totalCharactersTyped = 0;
+
+        for (String s : testPhraseList) {
+            totalCharactersTyped += s.length();
+        }
+
+        return 100f*(errors/totalCharactersTyped);
+    }
+
+    protected void phaseChange() {
+        if (currentPhase == HAPTIC_OFF) {
+            hapticOffFinishTime = System.currentTimeMillis();
+            hapticOffStartTime = currentStartTime;
+            hapticOffErrors = currentErrors;
+            currentErrors = 0;
+            currentStartTime = System.currentTimeMillis();
+            currentPhase = HAPTIC_ON;
+        } else if (currentPhase == HAPTIC_ON) {
+            hapticOnFinishTime = System.currentTimeMillis();
+            hapticOnStartTime = currentStartTime;
+            hapticOnErrors = currentErrors;
+            currentErrors = 0;
+            currentStartTime = System.currentTimeMillis();
+            currentPhase = VOICE_RECOGNITION;
+        } else {
+            voiceRecognitionFinishTime = System.currentTimeMillis();
+            voiceRecognitionStartTime = currentStartTime;
+            voiceRecognitionErrors = currentErrors;
+
+            hapticOffWPM = calculateWPM(hapticOffFinishTime-hapticOffStartTime);
+            hapticOffErrorRate = calculateErrorRate(hapticOffErrors);
+            hapticOnWPM = calculateWPM(hapticOnFinishTime-hapticOnStartTime);
+            hapticOnErrorRate = calculateErrorRate(hapticOnErrors);
+            hapticOnWPM = calculateWPM(voiceRecognitionFinishTime-voiceRecognitionStartTime);
+            voiceRecognitionErrorRate = calculateErrorRate(voiceRecognitionErrors);
+
+
+            Intent i = new Intent(getApplicationContext(), ResultsActivity.class);
+            startActivity(i);
+        }
+    }
+    // ==================================================================================================
+    private class userInputListener implements TextWatcher {
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+        }
+
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        /*
+            Get the phrase that the user is currently trying to type. Then get the index of the character they are trying to type.
+         */
+            String currentQuestionPhrase = testPhraseList.get(currentQuestionNumber);
+            int indexOfTypedCharacter = s.length() - 1;
+
+            /*
+                Check to make sure the user has not finished typing the phrase already. Otherwise, go to next phrase in the list.
+                If there are no more words in the list, change to next phase.
+             */
+            if (indexOfTypedCharacter < currentQuestionPhrase.length()) {
+                char correctChar = currentQuestionPhrase.charAt(indexOfTypedCharacter);
+                char typedChar = s.charAt(indexOfTypedCharacter);
+             /*
+                Check to make sure the user has not finished typing the phrase already. Compare the typed char to the correct answer.
+                If typed char is incorrect, then temporarily disable the watcher and send out a beeping sound.
+                After that, delete the most recently entered character from the input box and flag that user's most recent input was incorrect.
+                If the user's input was correct, remove any flag marking the most recent input as incorrect.
+             */
+                if (typedChar != correctChar) {
+                    toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
+                    input_field.removeTextChangedListener(this);
+                    input_field.setText(currentQuestionPhrase.substring(0,indexOfTypedCharacter));
+                    input_field.setSelection(indexOfTypedCharacter);
+                    input_field.addTextChangedListener(this);
+                    errorFound = true;
+                } else {
+                    errorFound = false;
+                }
+            } else {
+                currentQuestionNumber++;
+                if (currentQuestionNumber < testPhraseList.size() - 1) {
+                    processingEntry = true;
+                    input_field.removeTextChangedListener(this);
+                    input_field.setText("");
+                    text_to_type.setText(testPhraseList.get(currentQuestionNumber));
+                    input_field.addTextChangedListener(this);
+                } else {
+                     phaseChange();
+                }
+                errorFound = false;
+            }
+        }
+    }
 }
+
