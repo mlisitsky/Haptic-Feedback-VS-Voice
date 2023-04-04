@@ -23,9 +23,16 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:paddingTop="100dp"
+        android:paddingTop="20dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/main_instruction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/main_instructions_text" />
 
         <Button
             android:id="@+id/start_button"
@@ -39,6 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="clickSettings"
+            android:visibility="gone"
             android:text="@string/main_settings_button_text" />
 
         <!-- For Testing Purposes, Will Remove This Later -->
@@ -47,6 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="clickTestResults"
+            android:visibility="gone"
             android:text="@string/main_test_result_button_text" />
 
     </LinearLayout>

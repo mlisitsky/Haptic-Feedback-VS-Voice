@@ -1,15 +1,15 @@
 package ca.yorku.eecs.textinputcomparison;
 
-import static java.security.AccessController.getContext;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Vibrator;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
+import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 /*
@@ -79,21 +80,23 @@ public class TestActivity extends Activity {
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
     String previousText;
     ArrayList<String> testPhraseList, hapticOffList, hapticOnList, voiceRecognitionList;
-    TextView text_to_type;
-    EditText input_field;
+    TextView textToType, voiceRecognitionText;
+    EditText userInputField;
     Button nextPhaseButton;
     Vibrator vib;
     ToneGenerator toneGenerator;
-    userInputListener textChangedListener;
-
+    UserInputListener userTextChangedListener;
+    SpeechRecognizer userSpeechRecognizer;
+    RecognitionListener userSpeechRecognitionListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.test);
 
-        text_to_type = findViewById(R.id.text_to_type);
-        input_field = findViewById(R.id.input_field);
+        textToType = findViewById(R.id.text_to_type);
+        userInputField = findViewById(R.id.input_field);
+        voiceRecognitionText = findViewById(R.id.voice_recognition_text);
         nextPhaseButton = findViewById(R.id.next_phase_button);
         nextPhaseButton.setVisibility(View.GONE);
 
@@ -103,7 +106,7 @@ public class TestActivity extends Activity {
             phraseListTotalCharacters += s.length();
         }
 
-        text_to_type.setText(testPhraseList.get(currentQuestionNumber));
+        textToType.setText(testPhraseList.get(currentQuestionNumber));
 
         // Turn haptic feedback off
 //        View view = findViewById(android.R.id.content);
@@ -142,9 +145,19 @@ public class TestActivity extends Activity {
         voiceRecognitionErrorRate = 0f;
 
         toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
-        textChangedListener = new userInputListener();
-        input_field.addTextChangedListener(textChangedListener);
+        vib = (Vibrator) getSystemService(this.VIBRATOR_SERVICE);
 
+        userSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        userSpeechRecognitionListener = new UserSpeechRecognitionListener();
+        userTextChangedListener = new UserInputListener();
+
+        userInputField.addTextChangedListener(userTextChangedListener);
+
+        Intent recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        userSpeechRecognizer.startListening(recognizerIntent);
 
     }
 
@@ -286,13 +299,13 @@ public class TestActivity extends Activity {
     protected void phaseChange() {
         Log.i(MYDEBUG, "Phase Change from " + currentPhase + " to " + (currentPhase + 1));
 //        currentQuestionNumber = 0;
-        input_field.removeTextChangedListener(textChangedListener);
+        userInputField.removeTextChangedListener(userTextChangedListener);
         nextPhaseButton.setVisibility(View.VISIBLE);
-        input_field.setVisibility(View.GONE);
-        input_field.setEnabled(false);
-        input_field.setText("");
+        userInputField.setVisibility(View.GONE);
+        userInputField.setEnabled(false);
+        userInputField.setText("");
 
-        text_to_type.setText(R.string.main_test_next_phase_warning_text_haptic_off);
+        textToType.setText(R.string.main_test_next_phase_warning_text);
         Log.i(MYDEBUG, "Number of current errors is " + currentErrors);
 
         if (currentPhase == HAPTIC_OFF) {
@@ -300,7 +313,7 @@ public class TestActivity extends Activity {
             hapticOffStartTime = currentStartTime;
             hapticOffErrors = currentErrors;
             currentPhase = HAPTIC_ON;
-            text_to_type.setText(R.string.main_test_next_phase_warning_text_haptic_on);
+            textToType.setText(R.string.main_test_next_phase_warning_text_haptic_on);
             hapticOffList.addAll(testPhraseList);
 
             // Turn haptic feedback on
@@ -312,7 +325,7 @@ public class TestActivity extends Activity {
             hapticOnStartTime = currentStartTime;
             hapticOnErrors = currentErrors;
             currentPhase = VOICE_RECOGNITION;
-            text_to_type.setText(R.string.main_test_next_phase_warning_text);
+            textToType.setText(R.string.main_test_next_phase_warning_text);
             hapticOnList.addAll(testPhraseList);
 
             // Turn haptic feedback off again
@@ -331,7 +344,7 @@ public class TestActivity extends Activity {
             voiceRecognitionFinishTime = System.currentTimeMillis();
             voiceRecognitionStartTime = currentStartTime;
             voiceRecognitionErrors = currentErrors;
-            text_to_type.setText("");
+            textToType.setText("");
             voiceRecognitionList.addAll(testPhraseList);
 
             nextPhaseButton.setVisibility(View.GONE);
@@ -363,14 +376,14 @@ public class TestActivity extends Activity {
 
     public void clickNextPhase(View view) {
         testPhraseList = generatePhraseSet();
-        text_to_type.setText(testPhraseList.get(currentQuestionNumber));
-        input_field.setVisibility(View.VISIBLE);
-        input_field.setEnabled(true);
+        textToType.setText(testPhraseList.get(currentQuestionNumber));
+        userInputField.setVisibility(View.VISIBLE);
+        userInputField.setEnabled(true);
         nextPhaseButton.setVisibility(View.GONE);
         currentErrors = 0;
         currentStartTime = System.currentTimeMillis();
-        input_field.setText("");
-        input_field.addTextChangedListener(textChangedListener);
+        userInputField.setText("");
+        userInputField.addTextChangedListener(userTextChangedListener);
 
     }
 
@@ -400,7 +413,7 @@ public class TestActivity extends Activity {
     }
 
     // ==================================================================================================
-    private class userInputListener implements TextWatcher {
+    private class UserInputListener implements TextWatcher {
 
         @Override
         public void afterTextChanged(Editable s) {
@@ -417,11 +430,17 @@ public class TestActivity extends Activity {
 
 //            Log.i(MYDEBUG, "Number of current errors is " + currentErrors);
 
+            // If in the haptic feedback phrase, respond to every user key input with a vibration pulse similar to the default keyboard's haptic feedback setting
+            if (currentPhase == 1) {
+                long[] pattern = {0, 10, 10, 20};
+                vib.vibrate(pattern, -1);
+            }
+
             // Check if the length of the new text is less than the length of the previous text. If so, the user has deleted a character using the backspace key, which is not allowed. Undo this.
             if (s.length() < previousText.length()) {
                 Log.i(MYDEBUG, "Backspace detected");
-                input_field.setText(previousText);
-                input_field.setSelection(start+1);
+                userInputField.setText(previousText);
+                userInputField.setSelection(start+1);
             }
 
         // Get the phrase that the user is currently trying to type. Then determine which character in the phrase they are required to type.
@@ -464,14 +483,14 @@ public class TestActivity extends Activity {
                 if (typedChar != correctChar) {
                     // user typed an incorrect character
                     toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
-                    input_field.removeTextChangedListener(this);
+                    userInputField.removeTextChangedListener(this);
                     Log.i(MYDEBUG, "incorrect char at indexOfTypedCharacter: " + indexOfTypedCharacter);
                     Log.i(MYDEBUG, "currentQuestionPhrase.length(): " + currentQuestionPhrase.length());
-                    input_field.setText(currentQuestionPhrase.substring(0, Math.min(indexOfTypedCharacter, currentQuestionPhrase.length())));
+                    userInputField.setText(currentQuestionPhrase.substring(0, Math.min(indexOfTypedCharacter, currentQuestionPhrase.length())));
                     if (indexOfTypedCharacter < s.length()) {
-                        input_field.setSelection(indexOfTypedCharacter);
+                        userInputField.setSelection(indexOfTypedCharacter);
                     }
-                    input_field.addTextChangedListener(this);
+                    userInputField.addTextChangedListener(this);
                     currentErrors++;
                     errorFound = true;
                 } else {
@@ -485,18 +504,18 @@ public class TestActivity extends Activity {
                 if (currentQuestionNumber <= testPhraseList.size() - 1) {
                     // unused phrases remain in list
                     indexOfTypedCharacter = 0;
-                    input_field.removeTextChangedListener(this);
+                    userInputField.removeTextChangedListener(this);
                     if (indexOfTypedCharacter < currentQuestionPhrase.length() - 1 && indexOfTypedCharacter < s.length()) {
-                        input_field.setSelection(indexOfTypedCharacter);
+                        userInputField.setSelection(indexOfTypedCharacter);
                     } else {
-                        input_field.setSelection(currentQuestionPhrase.length());
+                        userInputField.setSelection(currentQuestionPhrase.length());
                     }
-                    input_field.removeTextChangedListener(this);
-                    input_field.setText(new Editable.Factory().newEditable(""));
-                    text_to_type.setText(testPhraseList.get(currentQuestionNumber));
+                    userInputField.removeTextChangedListener(this);
+                    userInputField.setText(new Editable.Factory().newEditable(""));
+                    textToType.setText(testPhraseList.get(currentQuestionNumber));
                     Log.i(MYDEBUG, "changing test to type to: " + testPhraseList.get(currentQuestionNumber));
 
-                    input_field.addTextChangedListener(this);
+                    userInputField.addTextChangedListener(this);
 
                 } else {
                     // no unused phrases remain in list
@@ -511,5 +530,56 @@ public class TestActivity extends Activity {
             }
         }
     }
+
+    //=================================================================================
+    private class UserSpeechRecognitionListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+            // Called when the speech recognition is ready to begin.
+        }
+
+        @Override
+        public void onBeginningOfSpeech() {
+            // Called when the user has started to speak.
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+            // Called when the volume of the user's speech changes.
+        }
+
+        @Override
+        public void onBufferReceived(byte[] bytes) {
+
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+            // Called when the user has finished speaking.
+        }
+
+        @Override
+        public void onError(int error) {
+            // Called when there is an error in the recognition process.
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            // Called when the speech recognition has produced results.
+            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            // Do something with the recognition results.
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            // Called when partial recognition results are available.
+        }
+
+        @Override
+        public void onEvent(int eventType, Bundle params) {
+            // Called when a speech recognition event occurs.
+        }
+    }
+
 }
 

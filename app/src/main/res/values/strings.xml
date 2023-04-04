@@ -4,12 +4,13 @@
     <string name="ok_button_text">OK</string>
     <string name="cancel_button_text">Cancel</string>
 
+    <string name="main_instructions_text">Welcome to our text input comparison test. You will be shown three sets of five phrases, and you will be expected to enter back the same phrases using the given input method. \n \n Note that if you have haptic feedback (vibration) already turned on for your keyboard of choice, please go to Settings > Vibration to turn it off  </string>
     <string name="main_start_button_text">Start Comparison Test</string>
     <string name="main_settings_button_text">Settings</string>
     <string name="main_test_result_button_text">Results Template</string>
 
     <string name="main_test_next_phase_warning_text">Moving to next phase, please press ok when ready.</string>
-    <string name="main_test_next_phase_warning_text_haptic_off">Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned on, please go to settings > vibration to turn if off. </string>
+    <string name="main_test_next_phase_warning_text_haptic_off">Moving to next phase, please press ok when ready. As a reminder, if your phone\'s haptic feedback settings are turned on, please go to settings > vibration to turn if off. </string>
     <string name="main_test_next_phase_warning_text_haptic_on">"Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned off, please go to settings > vibration to turn if on."</string>
 
 
