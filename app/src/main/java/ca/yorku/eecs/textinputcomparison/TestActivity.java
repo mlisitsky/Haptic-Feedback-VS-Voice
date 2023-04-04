@@ -1,21 +1,26 @@
 package ca.yorku.eecs.textinputcomparison;
 
-import static java.security.AccessController.getContext;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -78,6 +83,7 @@ public class TestActivity extends Activity {
     TextView text_to_type;
     EditText input_field;
     Button nextPhaseButton;
+    keyboardView appKeyboard;
     Vibrator vib;
     ToneGenerator toneGenerator;
 
@@ -132,7 +138,39 @@ public class TestActivity extends Activity {
         voiceRecognitionErrorRate = 0f;
 
         toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
+        appKeyboard = new keyboardView(this, input_field);
+
+
+        input_field.setOnTouchListener(new keyboardTouchListener ());
         input_field.addTextChangedListener(new userInputListener());
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View keyboard_layout = inflater.inflate(R.layout.keyboard, null);
+
+        // Find all the key views and set their OnClickListener to update the text
+        ViewGroup keyboard = keyboard_layout.findViewById(R.id.keyboard_layout);
+        for (int i = 0; i < keyboard.getChildCount(); i++) {
+            View childView = keyboard.getChildAt(i);
+            if (childView instanceof Button) {
+                childView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Button button = (Button) v;
+                        String buttonText = button.getText().toString();
+                        Editable editable = input_field.getText();
+                        int start = input_field.getSelectionStart();
+                        int end = input_field.getSelectionEnd();
+                        editable.replace(start, end, buttonText);
+                    }
+                });
+            }
+        }
+
+        // disables default phone keyboard
+        input_field.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        input_field.setShowSoftInputOnFocus(false);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
     }
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -231,6 +269,31 @@ public class TestActivity extends Activity {
         }
         return curatedPhrases;
     }
+/*
+    private void displayAppKeyboard() {
+        // Remove the appKeyboard view from its current parent if it has one
+/*        ViewGroup parentView = (ViewGroup) appKeyboard.getParent();
+        if (parentView != null) {
+            parentView.removeView(appKeyboard);
+        }
+*/
+    /*
+        if (!popup.isShowing()) {
+            // Create a popup window to display the keyboard view
+            PopupWindow popup = new PopupWindow(appKeyboard, ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, true);
+
+            // Set the popup window's background to null to remove the default shadow
+            popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            // Set the popup window's input method mode to allow the keyboard to be shown
+            popup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);
+
+            // Show the popup window below the EditText
+            popup.showAsDropDown(input_field);
+        }
+    }
+    */
 
     protected float calculateWPM(long millisTime) {
         long secondsTime = millisTime/1000;
@@ -301,6 +364,7 @@ public class TestActivity extends Activity {
     }
 
     public void clickNextPhase(View view) {
+        testPhraseList = generatePhraseSet();
         text_to_type.setText(testPhraseList.get(currentQuestionNumber));
         input_field.setVisibility(View.VISIBLE);
         input_field.setEnabled(true);
@@ -342,6 +406,7 @@ public class TestActivity extends Activity {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
 
+            appKeyboard.updateText(s.toString());
         // Get the phrase that the user is currently trying to type. Then determine which character in the phrase they are required to type.
             String currentQuestionPhrase = testPhraseList.get(currentQuestionNumber);
             int indexOfTypedCharacter = s.length() - 1;
@@ -426,6 +491,18 @@ public class TestActivity extends Activity {
                 }
                 errorFound = false;
             }
+        }
+    }
+
+    // ==================================================================================================
+    private class keyboardTouchListener implements View.OnTouchListener {
+
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                appKeyboard.displayAppKeyboard();
+            }
+            return false;
         }
     }
 }

@@ -8,6 +8,9 @@
     <string name="main_settings_button_text">Settings</string>
     <string name="main_test_result_button_text">Results Template</string>
 
+    <string name="next_phase_warning_text">Click the button below when ready to start the next phase</string>
+
+
     <string name="results_title_text">Results</string>
     <string name="results_typing_speed_text">Typing Speed:</string>
     <string name="results_accuracy_text">Accuracy:</string>

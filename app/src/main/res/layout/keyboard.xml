@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/keyboard_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Row 1 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/keyboardButtonQ"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Q" />
+
+        <Button
+            android:id="@+id/keyboardButtonW"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="W" />
+
+        <Button
+            android:id="@+id/keyboardButtonE"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="E" />
+
+        <Button
+            android:id="@+id/keyboardButtonR"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="R" />
+
+        <Button
+            android:id="@+id/keyboardButtonT"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="T" />
+
+        <Button
+            android:id="@+id/keyboardButtonY"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Y" />
+
+        <Button
+            android:id="@+id/keyboardButtonU"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="U" />
+
+        <Button
+            android:id="@+id/keyboardButtonI"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="I" />
+
+        <Button
+            android:id="@+id/keyboardButtonO"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="O" />
+
+        <Button
+            android:id="@+id/keyboardButtonP"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="P" />
+
+    </LinearLayout>
+
+    <!-- Row 2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/keyboardButtonA"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="A" />
+
+        <Button
+            android:id="@+id/keyboardButtonS"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="S" />
+
+        <Button
+            android:id="@+id/keyboardButtonD"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="D" />
+
+        <Button
+            android:id="@+id/keyboardButtonF"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="F" />
+
+        <Button
+            android:id="@+id/keyboardButtonG"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="G" />
+
+        <Button
+            android:id="@+id/keyboardButtonH"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="H" />
+
+        <Button
+            android:id="@+id/keyboardButtonJ"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="J" />
+
+        <Button
+            android:id="@+id/keyboardButtonK"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="K" />
+
+        <Button
+            android:id="@+id/keyboardButtonL"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="L" />
+        </LinearLayout>
+
+        <!-- Row 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/keyboardButtonZ"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Z" />
+
+            <Button
+                android:id="@+id/keyboardButtonX"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="X" />
+
+            <Button
+                android:id="@+id/keyboardButtonC"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="C" />
+
+            <Button
+                android:id="@+id/keyboardButtonV"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="V" />
+
+            <Button
+                android:id="@+id/keyboardButtonB"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="B" />
+
+            <Button
+                android:id="@+id/keyboardButtonN"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="N" />
+
+            <Button
+                android:id="@+id/keyboardButtonM"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="M" />
+
+            <ToggleButton
+                android:id="@+id/shiftButton"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:textOff="shift"
+                android:textOn ="SHIFT" />
+
+        </LinearLayout>
+
+    </LinearLayout>

@@ -17,11 +17,61 @@
         android:text="@string/results_title_text"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="25sp"/>
+
     
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/results_no_haptic_feedback_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/results_haptic_feedback_no_title_text" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/results_no_haptic_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/results_typing_speed_text" />
+
+            <TextView
+                android:id="@+id/results_no_haptic_speed_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/example_text" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/results_no_haptic_accuracy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/results_accuracy_text" />
+
+            <TextView
+                android:id="@+id/results_no_haptic_accuracy_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/example_text" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/results_yes_haptic_feedback_section"
@@ -63,55 +113,6 @@
 
             <TextView
                 android:id="@+id/results_yes_haptic_accuracy_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:text="@string/example_text" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/results_no_haptic_feedback_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="@string/results_haptic_feedback_no_title_text" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/results_no_haptic_speed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="@string/results_typing_speed_text" />
-
-            <TextView
-                android:id="@+id/results_no_haptic_speed_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:text="@string/example_text" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/results_no_haptic_accuracy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="@string/results_accuracy_text" />
-
-            <TextView
-                android:id="@+id/results_no_haptic_accuracy_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
