@@ -74,6 +74,7 @@ public class TestActivity extends Activity {
     int hapticOffErrors, hapticOnErrors, voiceRecognitionErrors;
     long hapticOffStartTime, hapticOffFinishTime, hapticOnStartTime, hapticOnFinishTime, voiceRecognitionStartTime, voiceRecognitionFinishTime;
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
+    String previousText;
     ArrayList<String> testPhraseList;
     TextView text_to_type;
     EditText input_field;
@@ -133,6 +134,8 @@ public class TestActivity extends Activity {
 
         toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
         input_field.addTextChangedListener(new userInputListener());
+
+
     }
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -254,14 +257,15 @@ public class TestActivity extends Activity {
         nextPhaseButton.setVisibility(View.VISIBLE);
         input_field.setVisibility(View.GONE);
         input_field.setEnabled(false);
-        text_to_type.setText(R.string.next_phase_warning_text);
+
+        text_to_type.setText(R.string.main_test_next_phase_warning_text_haptic_off);
 
         if (currentPhase == HAPTIC_OFF) {
             hapticOffFinishTime = System.currentTimeMillis();
             hapticOffStartTime = currentStartTime;
             hapticOffErrors = currentErrors;
             currentPhase = HAPTIC_ON;
-
+            text_to_type.setText(R.string.main_test_next_phase_warning_text_haptic_on);
             // Turn haptic feedback on
 //            View view = findViewById(android.R.id.content);
             View view = getWindow().getDecorView();
@@ -271,6 +275,7 @@ public class TestActivity extends Activity {
             hapticOnStartTime = currentStartTime;
             hapticOnErrors = currentErrors;
             currentPhase = VOICE_RECOGNITION;
+            text_to_type.setText(R.string.main_test_next_phase_warning_text);
 
             // Turn haptic feedback off again
             View view = getWindow().getDecorView();
@@ -301,6 +306,7 @@ public class TestActivity extends Activity {
     }
 
     public void clickNextPhase(View view) {
+        testPhraseList = generatePhraseSet();
         text_to_type.setText(testPhraseList.get(currentQuestionNumber));
         input_field.setVisibility(View.VISIBLE);
         input_field.setEnabled(true);
@@ -335,12 +341,22 @@ public class TestActivity extends Activity {
         }
 
         @Override
-        public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            previousText = s.toString();
         }
 
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            Log.i(MYDEBUG, "Number of current errors is " + currentErrors);
+
+            // Check if the length of the new text is less than the length of the previous text. If so, the user has deleted a character using the backspace key, which is not allowed. Undo this.
+            if (s.length() < previousText.length()) {
+                Log.i(MYDEBUG, "Backspace detected");
+                input_field.setText(previousText);
+                input_field.setSelection(start+1);
+            }
 
         // Get the phrase that the user is currently trying to type. Then determine which character in the phrase they are required to type.
             String currentQuestionPhrase = testPhraseList.get(currentQuestionNumber);
