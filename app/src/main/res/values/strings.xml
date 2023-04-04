@@ -10,7 +10,7 @@
 
     <string name="main_test_next_phase_warning_text">Moving to next phase, please press ok when ready.</string>
     <string name="main_test_next_phase_warning_text_haptic_off">Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned on, please go to settings > vibration to turn if off. </string>
-    <string name="main_test_next_phase_warning_text_haptic_on">"Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned on, please go to settings > vibration to turn if on."</string>
+    <string name="main_test_next_phase_warning_text_haptic_on">"Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned off, please go to settings > vibration to turn if on."</string>
 
 
     <string name="results_title_text">Results</string>

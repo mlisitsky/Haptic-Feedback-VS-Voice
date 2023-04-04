@@ -206,7 +206,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                android:text="@string/results_fastest_method_text" />
+                android:text="@string/results_most_accurate_method_text" />
 
             <TextView
                 android:id="@+id/results_most_accurate_method_value"
