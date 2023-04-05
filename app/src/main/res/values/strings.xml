@@ -14,7 +14,7 @@
     <string name="test_next_phase_warning_text_haptic_on">"Moving to next phase, please press ok when ready. If your phone\'s haptic feedback settings are turned off, please go to settings > vibration to turn if on."</string>
     <string name="test_record_button_start_text">Record</string>
     <string name="test_record_button_stop_text">Stop</string>
-
+    <string name="test_recording_in_progress_text">Stop</string>
 
     <string name="results_title_text">Results</string>
     <string name="results_typing_speed_text">Typing Speed:</string>

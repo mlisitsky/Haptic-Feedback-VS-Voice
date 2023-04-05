@@ -1,6 +1,7 @@
 package ca.yorku.eecs.textinputcomparison;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -37,22 +38,28 @@ import java.util.Locale;
 import java.util.Random;
 
 /*
-Many thanks to I. Scott MacKenzie and R. William Soukoreff for creating the phrase set used here.
+Many thanks to I. Scott MacKenzie and R. William Soukoreff for creating the phrase set used in the following test.
 For more information on the creation of this phrase set, you can read their paper on it here:
 http://www.yorku.ca/mack/chi03b.html
  */
 
 public class TestActivity extends Activity {
 
+    // Test-wide parameters
     private final static String MYDEBUG = "MYDEBUG";
-    private final static String PHRASES_LOCATION = "R.raw.phrases";
-    private final static String CURRENT_QUESTION_NUMBER = "current_question_number";
+    private final static int PHRASES_LIST_SOURCE = R.raw.phrases;
+    private final static int RECORD_AUDIO_REQUEST_CODE = 111;
+    private final static int NUMBER_OF_QUESTIONS = 5;
     private final static String PHRASES_LIST = "phrases_list";
     private final static String PHRASE_LIST_NUMBER_OF_CHARACTERS = "phraseList_total_characters";
+
+    // Current Phase parameters
     private final static String CURRENT_PHASE = "current_phase";
+    private final static String CURRENT_QUESTION_NUMBER = "current_question_number";
     private final static String CURRENT_PHASE_START_TIME = "current_phase_start_time";
     private final static String CURRENT_PHASE_NUMBER_OF_ERRORS = "current_errors";
 
+    // Data collected from the "Without Haptic Feedback" phase
     private final static int HAPTIC_OFF = 0;
     private final static String HAPTIC_OFF_START_TIME = "haptic_off_start_time";
     private final static String HAPTIC_OFF_FINISH_TIME = "haptic_off_finish_time";
@@ -61,15 +68,16 @@ public class TestActivity extends Activity {
     private final static String HAPTIC_OFF_WPM = "haptic_off_wpm";
     private final static String HAPTIC_OFF_ERROR_RATE = "haptic_off_error_rate";
 
+    // Data collected from the "With Haptic Feedback" phase
     private final static int HAPTIC_ON = 1;
     private final static String HAPTIC_ON_START_TIME = "haptic_on_start_time";
     private final static String HAPTIC_ON_FINISH_TIME = "haptic_on_finish_time";
     private final static String HAPTIC_ON_NUMBER_OF_ERRORS = "haptic_on_errors";
     private final static String HAPTIC_ON_PHRASE_LIST = "haptic_on_list";
-
     private final static String HAPTIC_ON_WPM = "haptic_on_wpm";
     private final static String HAPTIC_ON_ERROR_RATE = "haptic_on_error_rate";
 
+    // Data collected from the "Voice Recognition" phase
     private final static int VOICE_RECOGNITION = 2;
     private final static String VOICE_RECOGNITION_START_TIME = "voice_recognition_start_time";
     private final static String VOICE_RECOGNITION_FINISH_TIME = "voice_recognition_finish_time";
@@ -78,14 +86,10 @@ public class TestActivity extends Activity {
     private final static String VOICE_RECOGNITION_WPM = "voice_recognition_wpm";
     private final static String VOICE_RECOGNITION_ERROR_RATE = "voice_recognition_error_rate";
 
-    private final static int NUMBER_OF_QUESTIONS = 2;
-
-    private final static int RECORD_AUDIO_REQUEST_CODE = 111;
-
     int phraseListTotalCharacters;
     int currentQuestionNumber, currentErrors, currentPhase, totalCharactersTyped, totalWordsTyped;
     long currentStartTime;
-    boolean errorFound, processingEntry, phaseOver, recordingAudio;
+    boolean errorFound, phaseOver, recordingAudio;
     int hapticOffErrors, hapticOnErrors, voiceRecognitionErrors;
     long hapticOffStartTime, hapticOffFinishTime, hapticOnStartTime, hapticOnFinishTime, voiceRecognitionStartTime, voiceRecognitionFinishTime;
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
@@ -107,47 +111,43 @@ public class TestActivity extends Activity {
         textToType = findViewById(R.id.text_to_type);
         userInputField = findViewById(R.id.input_field);
         voiceRecognitionText = findViewById(R.id.voice_recognition_text);
+        voiceRecognitionText.setVisibility(View.GONE);
         nextPhaseButton = findViewById(R.id.next_phase_button);
         nextPhaseButton.setVisibility(View.GONE);
         recordButton = findViewById(R.id.record_audio_button);
+        recordButton.setVisibility(View.GONE);
 
         phraseListTotalCharacters = 0;
         testPhraseList = generatePhraseSet();
         for (String s : testPhraseList) {
             phraseListTotalCharacters += s.length();
         }
-
         textToType.setText(testPhraseList.get(currentQuestionNumber));
 
-        // Turn haptic feedback off
-//        View view = findViewById(android.R.id.content);
-        View view = getWindow().getDecorView();
-        view.setHapticFeedbackEnabled(false);
+        totalCharactersTyped = 0;
+        totalWordsTyped = 0;
 
         errorFound = false;
-        processingEntry = false;
-        phaseOver = false;
         recordingAudio = false;
+
         currentPhase = HAPTIC_OFF;
         currentErrors = 0;
         currentStartTime = System.currentTimeMillis();
-        totalCharactersTyped = 0;
-        totalWordsTyped = 0;
 
         hapticOffStartTime = 0;
         hapticOffFinishTime = 0;
         hapticOffErrors = 0;
-        hapticOffList = new ArrayList<String>();
+        hapticOffList = new ArrayList<>();
 
         hapticOnStartTime = 0;
         hapticOnFinishTime = 0;
         hapticOnErrors = 0;
-        hapticOnList = new ArrayList<String>();
+        hapticOnList = new ArrayList<>();
 
         voiceRecognitionStartTime = 0;
         voiceRecognitionFinishTime = 0;
         voiceRecognitionErrors = 0;
-        voiceRecognitionList = new ArrayList<String>();
+        voiceRecognitionList = new ArrayList<>();
 
         hapticOffWPM = 0f;
         hapticOffErrorRate = 0f;
@@ -157,8 +157,7 @@ public class TestActivity extends Activity {
         voiceRecognitionErrorRate = 0f;
 
         toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
-        vib = (Vibrator) getSystemService(this.VIBRATOR_SERVICE);
-
+        vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
         userTextChangedListener = new UserInputListener();
         userInputField.addTextChangedListener(userTextChangedListener);
@@ -173,78 +172,65 @@ public class TestActivity extends Activity {
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
 
-
         userSpeechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
             public void onReadyForSpeech(Bundle params) {
                 // Called when the speech recognition is ready to begin.
                 Log.i(MYDEBUG, "onReadyForSpeech");
-
             }
 
             @Override
             public void onBeginningOfSpeech() {
                 // Called when the user has started to speak.
-                voiceRecognitionText.setText("Listening...");
+                voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
                 Log.i(MYDEBUG, "onBeginningOfSpeech");
-
             }
 
             @Override
             public void onRmsChanged(float rmsdB) {
                 // Called when the volume of the user's speech changes.
                 Log.i(MYDEBUG, "onRmsChanged");
-
             }
 
             @Override
             public void onBufferReceived(byte[] bytes) {
                 Log.i(MYDEBUG, "onBufferReceived");
-
             }
 
             @Override
             public void onEndOfSpeech() {
                 // Called when the user has finished speaking.
                 Log.i(MYDEBUG, "onEndOfSpeech");
-
             }
 
             @Override
             public void onError(int error) {
                 // Called when there is an error in the recognition process.
                 Log.i(MYDEBUG, "onError: " + error);
-
             }
 
             @Override
             public void onResults(Bundle results) {
                 // Called when the speech recognition has produced results.
-//            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                // Do something with the recognition results.
                 Log.i(MYDEBUG, "onResults");
                 ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 voiceRecognitionText.setText(data.get(0));
                 userVoiceInput = data.get(0);
                 checkUserVoiceInput(userVoiceInput);
-
             }
 
             @Override
             public void onPartialResults(Bundle partialResults) {
                 // Called when partial recognition results are available.
                 Log.i(MYDEBUG, "onPartialResults");
-
             }
 
             @Override
             public void onEvent(int eventType, Bundle params) {
                 // Called when a speech recognition event occurs.
                 Log.i(MYDEBUG, "onEvent");
-
             }
         });
-
 
         View.OnTouchListener userOnTouchListener = new View.OnTouchListener() {
             @Override
@@ -266,10 +252,6 @@ public class TestActivity extends Activity {
         };
 
         recordButton.setOnTouchListener(userOnTouchListener);
-        recordButton.setVisibility(View.GONE);
-        voiceRecognitionText.setVisibility(View.GONE);
-
-
     }
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -291,7 +273,6 @@ public class TestActivity extends Activity {
         hapticOffErrors = savedInstanceState.getInt(HAPTIC_OFF_NUMBER_OF_ERRORS);
         hapticOffList = savedInstanceState.getStringArrayList(HAPTIC_OFF_PHRASE_LIST);
 
-
         // Haptics On Phase
         hapticOnStartTime = savedInstanceState.getLong(HAPTIC_ON_START_TIME);
         hapticOnFinishTime = savedInstanceState.getLong(HAPTIC_ON_FINISH_TIME);
@@ -303,7 +284,6 @@ public class TestActivity extends Activity {
         voiceRecognitionFinishTime = savedInstanceState.getLong(VOICE_RECOGNITION_FINISH_TIME);
         voiceRecognitionErrors = savedInstanceState.getInt(VOICE_RECOGNITION_NUMBER_OF_ERRORS);
         voiceRecognitionList = savedInstanceState.getStringArrayList(VOICE_RECOGNITION_PHRASE_LIST);
-
     }
 
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -324,7 +304,6 @@ public class TestActivity extends Activity {
         savedInstanceState.putInt(HAPTIC_OFF_NUMBER_OF_ERRORS, hapticOffErrors);
         savedInstanceState.putStringArrayList(HAPTIC_OFF_PHRASE_LIST, hapticOffList);
 
-
         // Haptics On Phase
         savedInstanceState.putLong(HAPTIC_ON_START_TIME, hapticOnStartTime);
         savedInstanceState.putLong(HAPTIC_ON_FINISH_TIME, hapticOnFinishTime);
@@ -337,17 +316,15 @@ public class TestActivity extends Activity {
         savedInstanceState.putInt(VOICE_RECOGNITION_NUMBER_OF_ERRORS, voiceRecognitionErrors);
         savedInstanceState.putStringArrayList(VOICE_RECOGNITION_PHRASE_LIST, voiceRecognitionList);
 
-
         super.onSaveInstanceState(savedInstanceState);
     }
-
 
     protected ArrayList<String> generatePhraseSet() {
         ArrayList<String> fullPhraseList = new ArrayList<>();
         ArrayList<String> curatedPhrases = new ArrayList<>();
 
         Resources resources = getApplicationContext().getResources();
-        InputStream inputStream = resources.openRawResource(R.raw.phrases);
+        InputStream inputStream = resources.openRawResource(PHRASES_LIST_SOURCE);
 
         currentQuestionNumber = 0;
         try {
@@ -376,13 +353,19 @@ public class TestActivity extends Activity {
         return curatedPhrases;
     }
 
+    /*
+        First, create a String array the words in the phrase to say and one of all the words detected in user voice input.
+        Put these in lowercase for comparison without considering case sensitivity, and also convert all integer representations of numbers to the corresponding english words.
+        Then, go word by word in the user voice input and compare to the corresponding word in the correct answer.
+        For each word that doesn't match, increment current phase errors by 1. If all words match, go to next phrase using the same logic as in the text input phases.
+        Otherwise, inform the user of what the application heard them say rather than the correct answer and ask them to try again.
+    */
     public void checkUserVoiceInput(String input) {
         String[] wordstoSay = testPhraseList.get(currentQuestionNumber).toLowerCase().trim().split("\\s+");
         String[] wordsInInput = input.toLowerCase().trim().split("\\s+");
         boolean allWordsCorrect = true;
         String userWord = "";
         String testWord = "";
-
 
         for (int i = 0; i < wordsInInput.length; i++) {
             if (wordstoSay[i] == null) {
@@ -391,6 +374,10 @@ public class TestActivity extends Activity {
                 testWord = wordstoSay[i];
             }
             userWord = wordsInInput[i];
+
+            if (checkIfNumber(userWord)) {
+                userWord = convertNumberToWord(userWord);
+            }
 
             if (!userWord.equals(testWord)) {
                 currentErrors++;
@@ -421,12 +408,62 @@ public class TestActivity extends Activity {
             String sorryText = "We heard \"" + voiceRecognitionText.getText().toString() + "\". Please try again.";
             voiceRecognitionText.setText(sorryText);
         }
+    }
 
+    public boolean checkIfNumber(String s) {
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
 
+    public String convertNumberToWord(String s) {
+        int num = Integer.parseInt(s);
+        String[] ones = {"", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"};
+        String[] tens = {"", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
+        String convertedWord = "";
+
+        if (num == 0) {
+            return "zero";
+        }
+
+        if (num == 1000) {
+            return "thousand";
+        }
+
+        if (num < 0 || num > 999) {
+            return "invalid number";
+        }
+
+        if ((num / 100) > 0) {
+            convertedWord += ones[num / 100] + " hundred ";
+            num %= 100;
+        }
+
+        if (num > 0) {
+            if (convertedWord != "") {
+                convertedWord += "and ";
+            }
+
+            if (num < 20) {
+                convertedWord += ones[num];
+            } else {
+                convertedWord += tens[num / 10] + " ";
+                num %= 10;
+
+                if (num > 0) {
+                    convertedWord += ones[num];
+                }
+            }
+        }
+
+        return convertedWord;
     }
 
     protected float calculateWPM(ArrayList<String> list, long millisTime) {
-        float secondsTime = millisTime / 1000;
+        float secondsTime = millisTime / 1000f;
         int totalWordsTyped = 0;
 
         for (String s : list) {
@@ -435,7 +472,6 @@ public class TestActivity extends Activity {
         }
 
         Log.i(MYDEBUG, "WPM: " + totalWordsTyped + "/" + (secondsTime / 60) + "minutes");
-
 
         return totalWordsTyped / (secondsTime / 60);
     }
@@ -450,10 +486,10 @@ public class TestActivity extends Activity {
         Log.i(MYDEBUG, "Accuracy Rate = 100% * " + (totalCharactersTyped - errors) + "/" + totalCharactersTyped);
 
         float errorRatio = (float) (totalCharactersTyped - errors) / totalCharactersTyped;
-
         return 100f * errorRatio;
     }
 
+    // Voice recognition calculates errors by word rather than character so it needs its own accuracy rate calculation
     protected float calculateVoiceRecognitionErrorRate(ArrayList<String> list, int errors) {
         int totalWordsTyped = 0;
 
@@ -465,15 +501,15 @@ public class TestActivity extends Activity {
         Log.i(MYDEBUG, "Accuracy Rate = 100% * " + (totalWordsTyped - errors) + "/" + totalWordsTyped);
 
         float errorRatio = (float) (totalWordsTyped - errors) / totalWordsTyped;
-
         return 100f * errorRatio;
     }
 
-
-
+    /*
+        Based on the ID of the current phase, save all current phase parameters into the proper phase-specific parameters for calculation later.
+        Make adjustments to between-phase display based on what the upcoming phase is. If final phase has ended, calculate final results and send to results activity.
+     */
     protected void phaseChange() {
         Log.i(MYDEBUG, "Phase Change from " + currentPhase + " to " + (currentPhase + 1));
-//        currentQuestionNumber = 0;
         userInputField.removeTextChangedListener(userTextChangedListener);
         nextPhaseButton.setVisibility(View.VISIBLE);
         userInputField.setVisibility(View.GONE);
@@ -488,13 +524,9 @@ public class TestActivity extends Activity {
             hapticOffStartTime = currentStartTime;
             hapticOffErrors = currentErrors;
             currentPhase = HAPTIC_ON;
-            textToType.setText(R.string.test_next_phase_warning_text_haptic_on);
+            textToType.setText(R.string.test_next_phase_warning_text_haptic_off);
             hapticOffList.addAll(testPhraseList);
 
-            // Turn haptic feedback on
-//            View view = findViewById(android.R.id.content);
-            View view = getWindow().getDecorView();
-            view.setHapticFeedbackEnabled(true);
         } else if (currentPhase == HAPTIC_ON) {
             hapticOnFinishTime = System.currentTimeMillis();
             hapticOnStartTime = currentStartTime;
@@ -503,15 +535,10 @@ public class TestActivity extends Activity {
             textToType.setText(R.string.test_next_phase_warning_text);
             hapticOnList.addAll(testPhraseList);
 
-            // Turn haptic feedback off again
-            View view = getWindow().getDecorView();
-            view.setHapticFeedbackEnabled(false);
-
-            // Enable Voice Recognition instead of keyboard here
+            // Hide keyboard input field and reveal record button
             userInputField.setVisibility(View.GONE);
             voiceRecognitionText.setVisibility(View.VISIBLE);
             recordButton.setVisibility(View.VISIBLE);
-
 
         } else if (currentPhase == VOICE_RECOGNITION) {
             voiceRecognitionFinishTime = System.currentTimeMillis();
@@ -547,6 +574,9 @@ public class TestActivity extends Activity {
         }
     }
 
+    /*
+        Remove between-phase display and reset current phase parameters.
+     */
     public void clickNextPhase(View view) {
         testPhraseList = generatePhraseSet();
         textToType.setText(testPhraseList.get(currentQuestionNumber));
@@ -571,17 +601,15 @@ public class TestActivity extends Activity {
         Log.i(MYDEBUG, "Before going to the results activity, voice recognition wpm = " + voiceRecognitionWPM);
         Log.i(MYDEBUG, "Before going to the results activity, voice recognition error rate = " + voiceRecognitionErrorRate);
 
-
         b.putFloat(HAPTIC_OFF_WPM, hapticOffWPM);
         b.putFloat(HAPTIC_OFF_ERROR_RATE, hapticOffErrorRate);
         b.putFloat(HAPTIC_ON_WPM, hapticOnWPM);
         b.putFloat(HAPTIC_ON_ERROR_RATE, hapticOnErrorRate);
         b.putFloat(VOICE_RECOGNITION_WPM, voiceRecognitionWPM);
         b.putFloat(VOICE_RECOGNITION_ERROR_RATE, voiceRecognitionErrorRate);
+
         i.putExtras(b);
-
         startActivity(i);
-
         finish();
     }
 
@@ -602,7 +630,7 @@ public class TestActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == RECORD_AUDIO_REQUEST_CODE && grantResults.length > 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permission Granted to Record Audio", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -622,8 +650,6 @@ public class TestActivity extends Activity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-//            Log.i(MYDEBUG, "Number of current errors is " + currentErrors);
 
             // If in the haptic feedback phrase, respond to every user key input with a vibration pulse similar to the default keyboard's haptic feedback setting
             if (currentPhase == 1) {
