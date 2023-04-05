@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:text="Sample Text" />
+            android:text="@string/example_text" />
 
         <EditText
             android:id="@+id/input_field"
@@ -56,8 +56,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:visibility="gone"
             android:text="@string/ok_button_text"
             android:onClick="clickNextPhase"/>
+
+        <Button
+            android:id="@+id/record_audio_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:visibility="gone"
+            android:text="@string/test_record_button_start_text"
+            />
 
     </LinearLayout>
 
