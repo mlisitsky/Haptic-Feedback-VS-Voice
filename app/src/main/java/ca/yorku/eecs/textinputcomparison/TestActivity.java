@@ -378,9 +378,16 @@ public class TestActivity extends Activity {
             receivedWords++;
         }
 
+        if (receivedWords < requiredWords) {
+            currentErrors += (requiredWords - receivedWords);
+            allWordsCorrect = false;
+        }
+
         for (int i = 0; i < receivedWords - 1; i++) {
             if (wordsToSay[i] == null || i > requiredWords) {
-                testWord = "null";
+                currentErrors += receivedWords - requiredWords;
+                allWordsCorrect = false;
+                break;
             } else {
                 testWord = wordsToSay[i];
             }
