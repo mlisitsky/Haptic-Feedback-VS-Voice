@@ -395,6 +395,7 @@ public class TestActivity extends Activity {
             if (!userWord.equals(testWord)) {
                 currentErrors++;
                 allWordsCorrect = false;
+                toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
             }
             Log.i(MYDEBUG, "Comparing user input: " + userWord + " to correct word: " + testWord);
         }
@@ -452,6 +453,23 @@ public class TestActivity extends Activity {
 
         return 100f * errorRatio;
     }
+
+    protected float calculateVoiceRecognitionErrorRate(ArrayList<String> list, int errors) {
+        int totalWordsTyped = 0;
+
+        for (String s : list) {
+            String[] words = s.trim().split("\\s+");
+            totalWordsTyped += words.length;
+        }
+
+        Log.i(MYDEBUG, "Accuracy Rate = 100% * " + (totalWordsTyped - errors) + "/" + totalWordsTyped);
+
+        float errorRatio = (float) (totalWordsTyped - errors) / totalWordsTyped;
+
+        return 100f * errorRatio;
+    }
+
+
 
     protected void phaseChange() {
         Log.i(MYDEBUG, "Phase Change from " + currentPhase + " to " + (currentPhase + 1));
@@ -516,7 +534,7 @@ public class TestActivity extends Activity {
             hapticOnWPM = calculateWPM(hapticOnList, (hapticOnFinishTime - hapticOnStartTime));
             hapticOnErrorRate = calculateErrorRate(hapticOnList, hapticOnErrors);
             voiceRecognitionWPM = calculateWPM(voiceRecognitionList, (voiceRecognitionFinishTime - voiceRecognitionStartTime));
-            voiceRecognitionErrorRate = calculateErrorRate(voiceRecognitionList, voiceRecognitionErrors);
+            voiceRecognitionErrorRate = calculateVoiceRecognitionErrorRate(voiceRecognitionList, voiceRecognitionErrors);
 
             Log.i(MYDEBUG, "After calculating, haptic_off wpm = " + hapticOffWPM);
             Log.i(MYDEBUG, "After calculating, haptic_off error rate = " + hapticOffErrorRate);
