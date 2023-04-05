@@ -243,7 +243,7 @@ public class TestActivity extends Activity {
                 }
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     recordButton.setText(R.string.test_record_button_stop_text);
-                    voiceRecognitionText.setText("Listening...");
+                    voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
                     recordingAudio = true;
                     Log.i(MYDEBUG, "Record Button pressed");
                     userSpeechRecognizer.startListening(speechRecognizerIntent);
@@ -459,12 +459,10 @@ public class TestActivity extends Activity {
             return "invalid number";
         }
 
-        if (num > 0) {
-            if (num < 20) {
-                convertedWord = ones[num];
-            } else {
-                convertedWord = tens[num / 10];
-            }
+        if (num < 20) {
+            convertedWord = ones[num];
+        } else {
+            convertedWord = tens[num / 10];
         }
 
         return convertedWord;

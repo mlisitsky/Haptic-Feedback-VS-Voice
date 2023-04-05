@@ -118,6 +118,7 @@ public class ResultsActivity extends Activity {
 
         Intent i = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(i);
+        finish();
     }
 }
 
