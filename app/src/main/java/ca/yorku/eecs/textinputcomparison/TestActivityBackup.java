@@ -1,33 +1,32 @@
 package ca.yorku.eecs.textinputcomparison;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.Manifest;
 import android.media.AudioManager;
+import android.media.MediaRecorder;
 import android.media.ToneGenerator;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.speech.RecognitionListener;
-import android.speech.SpeechRecognizer;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +41,7 @@ For more information on the creation of this phrase set, you can read their pape
 http://www.yorku.ca/mack/chi03b.html
  */
 
-public class TestActivity extends Activity {
+public class TestActivityBackup extends Activity {
 
     private final static String MYDEBUG = "MYDEBUG";
     private final static String PHRASES_LOCATION = "R.raw.phrases";
@@ -64,7 +63,7 @@ public class TestActivity extends Activity {
     private final static int HAPTIC_ON = 1;
     private final static String HAPTIC_ON_START_TIME = "haptic_on_start_time";
     private final static String HAPTIC_ON_FINISH_TIME = "haptic_on_finish_time";
-    private final static String HAPTIC_ON_NUMBER_OF_ERRORS = "haptic_on_errors";
+    private final static String HAPTIC_ON_NUMBER_OF_ERRORS= "haptic_on_errors";
     private final static String HAPTIC_ON_PHRASE_LIST = "haptic_on_list";
 
     private final static String HAPTIC_ON_WPM = "haptic_on_wpm";
@@ -79,8 +78,8 @@ public class TestActivity extends Activity {
     private final static String VOICE_RECOGNITION_ERROR_RATE = "voice_recognition_error_rate";
 
     private final static int NUMBER_OF_QUESTIONS = 2;
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
-    private final static int RECORD_AUDIO_REQUEST_CODE = 111;
 
     int phraseListTotalCharacters;
     int currentQuestionNumber, currentErrors, currentPhase, totalCharactersTyped, totalWordsTyped;
@@ -89,7 +88,7 @@ public class TestActivity extends Activity {
     int hapticOffErrors, hapticOnErrors, voiceRecognitionErrors;
     long hapticOffStartTime, hapticOffFinishTime, hapticOnStartTime, hapticOnFinishTime, voiceRecognitionStartTime, voiceRecognitionFinishTime;
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
-    String previousText, userVoiceInput;
+    String previousText, recordedAudioFileName;
     ArrayList<String> testPhraseList, hapticOffList, hapticOnList, voiceRecognitionList;
     TextView textToType, voiceRecognitionText;
     EditText userInputField;
@@ -98,6 +97,8 @@ public class TestActivity extends Activity {
     ToneGenerator toneGenerator;
     UserInputListener userTextChangedListener;
     SpeechRecognizer userSpeechRecognizer;
+    RecognitionListener userSpeechRecognitionListener;
+    MediaRecorder mediaRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +111,7 @@ public class TestActivity extends Activity {
         nextPhaseButton = findViewById(R.id.next_phase_button);
         nextPhaseButton.setVisibility(View.GONE);
         recordButton = findViewById(R.id.record_audio_button);
+        recordButton.setVisibility(View.VISIBLE);
 
         phraseListTotalCharacters = 0;
         testPhraseList = generatePhraseSet();
@@ -159,116 +161,17 @@ public class TestActivity extends Activity {
         toneGenerator = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
         vib = (Vibrator) getSystemService(this.VIBRATOR_SERVICE);
 
-
+        userSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        userSpeechRecognitionListener = new UserSpeechRecognitionListener();
         userTextChangedListener = new UserInputListener();
+
         userInputField.addTextChangedListener(userTextChangedListener);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            checkSpeechPermissions();
-        }
-
-        userSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-
-        final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-
-
-        userSpeechRecognizer.setRecognitionListener(new RecognitionListener() {
-            @Override
-            public void onReadyForSpeech(Bundle params) {
-                // Called when the speech recognition is ready to begin.
-                Log.i(MYDEBUG, "onReadyForSpeech");
-
-            }
-
-            @Override
-            public void onBeginningOfSpeech() {
-                // Called when the user has started to speak.
-                voiceRecognitionText.setText("Listening...");
-                Log.i(MYDEBUG, "onBeginningOfSpeech");
-
-            }
-
-            @Override
-            public void onRmsChanged(float rmsdB) {
-                // Called when the volume of the user's speech changes.
-                Log.i(MYDEBUG, "onRmsChanged");
-
-            }
-
-            @Override
-            public void onBufferReceived(byte[] bytes) {
-                Log.i(MYDEBUG, "onBufferReceived");
-
-            }
-
-            @Override
-            public void onEndOfSpeech() {
-                // Called when the user has finished speaking.
-                Log.i(MYDEBUG, "onEndOfSpeech");
-
-            }
-
-            @Override
-            public void onError(int error) {
-                // Called when there is an error in the recognition process.
-                Log.i(MYDEBUG, "onError: " + error);
-
-            }
-
-            @Override
-            public void onResults(Bundle results) {
-                // Called when the speech recognition has produced results.
-//            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                // Do something with the recognition results.
-                Log.i(MYDEBUG, "onResults");
-                ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                voiceRecognitionText.setText(data.get(0));
-                userVoiceInput = data.get(0);
-                checkUserVoiceInput(userVoiceInput);
-
-            }
-
-            @Override
-            public void onPartialResults(Bundle partialResults) {
-                // Called when partial recognition results are available.
-                Log.i(MYDEBUG, "onPartialResults");
-
-            }
-
-            @Override
-            public void onEvent(int eventType, Bundle params) {
-                // Called when a speech recognition event occurs.
-                Log.i(MYDEBUG, "onEvent");
-
-            }
-        });
-
-
-        View.OnTouchListener userOnTouchListener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    recordButton.setText(R.string.test_record_button_start_text);
-                    Log.i(MYDEBUG, "Record Button unpressed");
-                    userSpeechRecognizer.stopListening();
-                }
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    recordButton.setText(R.string.test_record_button_stop_text);
-                    voiceRecognitionText.setText("Listening...");
-                    recordingAudio = true;
-                    Log.i(MYDEBUG, "Record Button pressed");
-                    userSpeechRecognizer.startListening(speechRecognizerIntent);
-                }
-                return false;
-            }
-        };
-
-        recordButton.setOnTouchListener(userOnTouchListener);
-        recordButton.setVisibility(View.GONE);
-        voiceRecognitionText.setVisibility(View.GONE);
-
+        Intent recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        userSpeechRecognizer.startListening(recognizerIntent);
 
     }
 
@@ -313,8 +216,8 @@ public class TestActivity extends Activity {
         savedInstanceState.putInt(PHRASE_LIST_NUMBER_OF_CHARACTERS, phraseListTotalCharacters);
 
         // Current Phase
-        savedInstanceState.putInt(CURRENT_PHASE, currentPhase);
-        savedInstanceState.putInt(CURRENT_QUESTION_NUMBER, currentQuestionNumber);
+        savedInstanceState.putInt(CURRENT_PHASE,currentPhase);
+        savedInstanceState.putInt(CURRENT_QUESTION_NUMBER,currentQuestionNumber);
         savedInstanceState.putLong(CURRENT_PHASE_START_TIME, currentStartTime);
         savedInstanceState.putInt(CURRENT_PHASE_NUMBER_OF_ERRORS, currentErrors);
 
@@ -368,64 +271,18 @@ public class TestActivity extends Activity {
                 int listItemNumber = rand.nextInt(fullPhraseList.size() - 1);
                 curatedPhrases.add(fullPhraseList.get(listItemNumber));
             }
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             Log.i(MYDEBUG, "File not found.");
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             Log.i(MYDEBUG, "IOException");
         }
         return curatedPhrases;
     }
 
-    public void checkUserVoiceInput(String input) {
-        String[] wordstoSay = testPhraseList.get(currentQuestionNumber).toLowerCase().trim().split("\\s+");
-        String[] wordsInInput = input.toLowerCase().trim().split("\\s+");
-        boolean allWordsCorrect = true;
-        String userWord = "";
-        String testWord = "";
-
-
-        for (int i = 0; i < wordsInInput.length; i++) {
-            if (wordstoSay[i] == null) {
-                testWord = "null";
-            } else {
-                testWord = wordstoSay[i];
-            }
-            userWord = wordsInInput[i];
-
-            if (!userWord.equals(testWord)) {
-                currentErrors++;
-                allWordsCorrect = false;
-            }
-            Log.i(MYDEBUG, "Comparing user input: " + userWord + " to correct word: " + testWord);
-        }
-
-        if (allWordsCorrect) {
-            currentQuestionNumber++;
-            if (currentQuestionNumber <= testPhraseList.size() - 1) {
-                // unused phrases remain in list
-                voiceRecognitionText.setText("");
-                textToType.setText(testPhraseList.get(currentQuestionNumber));
-                Log.i(MYDEBUG, "changing test to type: " + testPhraseList.get(currentQuestionNumber));
-
-            } else {
-                // no unused phrases remain in list
-                Log.i(MYDEBUG, "currentQuestionNumber: " + currentQuestionNumber);
-                Log.i(MYDEBUG, "testPhraseList.size(): " + testPhraseList.size());
-                phaseOver = true;
-                currentQuestionNumber = 0;
-                phaseChange();
-            }
-        } else {
-            Log.i(MYDEBUG, "user input sounded like: " + voiceRecognitionText.getText().toString());
-            String sorryText = "We heard \"" + voiceRecognitionText.getText().toString() + "\". Please try again.";
-            voiceRecognitionText.setText(sorryText);
-        }
-
-
-    }
-
     protected float calculateWPM(ArrayList<String> list, long millisTime) {
-        float secondsTime = millisTime / 1000;
+        float secondsTime = millisTime/1000;
         int totalWordsTyped = 0;
 
         for (String s : list) {
@@ -433,7 +290,7 @@ public class TestActivity extends Activity {
             totalWordsTyped += words.length;
         }
 
-        Log.i(MYDEBUG, "WPM: " + totalWordsTyped + "/" + (secondsTime / 60) + "minutes");
+        Log.i(MYDEBUG, "WPM: " + totalWordsTyped + "/" + (secondsTime/60) + "minutes");
 
 
         return totalWordsTyped / (secondsTime / 60);
@@ -489,13 +346,15 @@ public class TestActivity extends Activity {
             View view = getWindow().getDecorView();
             view.setHapticFeedbackEnabled(false);
 
+
             // Enable Voice Recognition instead of keyboard here
-            userInputField.setVisibility(View.GONE);
-            voiceRecognitionText.setVisibility(View.VISIBLE);
-            recordButton.setVisibility(View.VISIBLE);
 
 
-        } else if (currentPhase == VOICE_RECOGNITION) {
+
+
+
+
+        } else if (currentPhase == VOICE_RECOGNITION){
             voiceRecognitionFinishTime = System.currentTimeMillis();
             voiceRecognitionStartTime = currentStartTime;
             voiceRecognitionErrors = currentErrors;
@@ -504,18 +363,18 @@ public class TestActivity extends Activity {
 
             nextPhaseButton.setVisibility(View.GONE);
 
-            Log.i(MYDEBUG, "Before calculating, haptic_off time = " + hapticOffFinishTime + " - " + hapticOffStartTime + " = " + (hapticOffFinishTime - hapticOffStartTime));
+            Log.i(MYDEBUG, "Before calculating, haptic_off time = " + hapticOffFinishTime + " - " + hapticOffStartTime + " = " + (hapticOffFinishTime-hapticOffStartTime));
             Log.i(MYDEBUG, "Before calculating, haptic_off errors = " + hapticOffErrors);
-            Log.i(MYDEBUG, "Before calculating, haptic_on time = " + hapticOnFinishTime + " - " + hapticOnStartTime + " = " + (hapticOnFinishTime - hapticOnStartTime));
+            Log.i(MYDEBUG, "Before calculating, haptic_on time = " + hapticOnFinishTime + " - " + hapticOnStartTime + " = " + (hapticOnFinishTime-hapticOnStartTime));
             Log.i(MYDEBUG, "Before calculating, haptic_on errors = " + hapticOnErrors);
-            Log.i(MYDEBUG, "Before calculating, voice recognition time = " + voiceRecognitionFinishTime + " - " + voiceRecognitionStartTime + " = " + (voiceRecognitionFinishTime - voiceRecognitionStartTime));
+            Log.i(MYDEBUG, "Before calculating, voice recognition time = " + voiceRecognitionFinishTime + " - " + voiceRecognitionStartTime + " = " + (voiceRecognitionFinishTime-voiceRecognitionStartTime));
             Log.i(MYDEBUG, "Before calculating, voice recognition errors = " + voiceRecognitionErrors);
 
-            hapticOffWPM = calculateWPM(hapticOffList, (hapticOffFinishTime - hapticOffStartTime));
+            hapticOffWPM = calculateWPM(hapticOffList, (hapticOffFinishTime-hapticOffStartTime));
             hapticOffErrorRate = calculateErrorRate(hapticOffList, hapticOffErrors);
-            hapticOnWPM = calculateWPM(hapticOnList, (hapticOnFinishTime - hapticOnStartTime));
+            hapticOnWPM = calculateWPM(hapticOnList, (hapticOnFinishTime-hapticOnStartTime));
             hapticOnErrorRate = calculateErrorRate(hapticOnList, hapticOnErrors);
-            voiceRecognitionWPM = calculateWPM(voiceRecognitionList, (voiceRecognitionFinishTime - voiceRecognitionStartTime));
+            voiceRecognitionWPM = calculateWPM(voiceRecognitionList, (voiceRecognitionFinishTime-voiceRecognitionStartTime));
             voiceRecognitionErrorRate = calculateErrorRate(voiceRecognitionList, voiceRecognitionErrors);
 
             Log.i(MYDEBUG, "After calculating, haptic_off wpm = " + hapticOffWPM);
@@ -539,7 +398,6 @@ public class TestActivity extends Activity {
         currentStartTime = System.currentTimeMillis();
         userInputField.setText("");
         userInputField.addTextChangedListener(userTextChangedListener);
-        phaseOver = false;
     }
 
     public void getResults() {
@@ -567,27 +425,140 @@ public class TestActivity extends Activity {
         finish();
     }
 
-    public void checkSpeechPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, RECORD_AUDIO_REQUEST_CODE);
+    public void clickRecord(View view) {
+        if (!recordingAudio) {
+            startRecording();
+        } else {
+            stopRecording();
+        }
+    }
+
+    public void startRecording() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    REQUEST_RECORD_AUDIO_PERMISSION);
+        } else {
+            recordedAudioFileName = getExternalCacheDir().getAbsolutePath() + "/recording.3gp";
+            mediaRecorder = new MediaRecorder();
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mediaRecorder.setOutputFile(recordedAudioFileName);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+            try {
+                mediaRecorder.prepare();
+                mediaRecorder.start();
+                recordingAudio = true;
+                recordButton.setText(R.string.test_record_button_stop_text);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void stopRecording() {
+        if (recordingAudio) {
+            mediaRecorder.stop();
+            mediaRecorder.release();
+            mediaRecorder = null;
+            recordingAudio = false;
+            recordButton.setText(R.string.test_record_button_start_text);
+        }
+    }
+
+    private void sendAudioToSpeechRecognizer() {
+        if (recordedAudioFileName != null) {
+            try {
+                FileInputStream fileInputStream = new FileInputStream(recordedAudioFileName);
+                SpeechRecognizer speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+
+                InputStream inputStream = new FileInputStream(new File(recordedAudioFileName));
+
+                int inputStreamLength = 0;
+                byte[] buffer = new byte[4096]; // Use an appropriate buffer size
+
+                // Read from the input stream into the buffer and count the bytes read
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    inputStreamLength += bytesRead;
+                }
+                byte[] audioData = new byte[inputStreamLength];
+
+                inputStream.read(audioData);
+                inputStream.close();
+
+                speechRecognizer.startListening(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+                                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 3000)
+                                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2000)
+                                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 2000)
+                                .putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true)
+                                .putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES, true));
+                /*
+                        new RecognitionProgressListener() {
+                            @Override
+                            public void onBeginningOfSpeech() {
+                                // Called when the user starts speaking
+                            }
+
+                            @Override
+                            public void onBufferReceived(byte[] buffer) {
+                                // Called when partial recognition results are available
+                            }
+
+                            @Override
+                            public void onEndOfSpeech() {
+                                // Called when the user stops speaking
+                            }
+
+                            @Override
+                            public void onError(int error) {
+                                // Called when an error occurs
+                            }
+
+                            @Override
+                            public void onPartialResults(Bundle partialResults) {
+                                // Called when partial recognition results are available
+                            }
+
+                            @Override
+                            public void onReadyForSpeech(Bundle params) {
+                                // Called when the SpeechRecognizer is ready for audio input
+                            }
+
+                            @Override
+                            public void onResults(Bundle results) {
+                                // Called when the recognition results are available
+                            }
+
+                            @Override
+                            public void onRmsChanged(float rmsdB) {
+                                // Called when the RMS dB value of the input audio changes
+                            }
+                        }, new Handler());
+
+                 */
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        userSpeechRecognizer.destroy();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == RECORD_AUDIO_REQUEST_CODE && grantResults.length > 0) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startRecording();
+            }
         }
     }
-
 
     // ==================================================================================================
     private class UserInputListener implements TextWatcher {
@@ -617,10 +588,10 @@ public class TestActivity extends Activity {
             if (s.length() < previousText.length()) {
                 Log.i(MYDEBUG, "Backspace detected");
                 userInputField.setText(previousText);
-                userInputField.setSelection(start + 1);
+                userInputField.setSelection(start+1);
             }
 
-            // Get the phrase that the user is currently trying to type. Then determine which character in the phrase they are required to type.
+        // Get the phrase that the user is currently trying to type. Then determine which character in the phrase they are required to type.
             String currentQuestionPhrase = testPhraseList.get(currentQuestionNumber);
             int indexOfTypedCharacter = s.length() - 1;
             if (indexOfTypedCharacter < 0) {
@@ -707,5 +678,99 @@ public class TestActivity extends Activity {
             }
         }
     }
+
+    //=================================================================================
+    private class UserSpeechRecognitionListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+            // Called when the speech recognition is ready to begin.
+        }
+
+        @Override
+        public void onBeginningOfSpeech() {
+            // Called when the user has started to speak.
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+            // Called when the volume of the user's speech changes.
+        }
+
+        @Override
+        public void onBufferReceived(byte[] bytes) {
+
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+            // Called when the user has finished speaking.
+        }
+
+        @Override
+        public void onError(int error) {
+            // Called when there is an error in the recognition process.
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            // Called when the speech recognition has produced results.
+            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            // Do something with the recognition results.
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            // Called when partial recognition results are available.
+        }
+
+        @Override
+        public void onEvent(int eventType, Bundle params) {
+            // Called when a speech recognition event occurs.
+        }
+    }
+/*
+    private class UserVoiceRecognitionProgressListener implements RecognitionProgressListener {
+        @Override
+        public void onBeginningOfSpeech() {
+            // Called when the user starts speaking
+        }
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+            // Called when partial recognition results are available
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+            // Called when the user stops speaking
+        }
+
+        @Override
+        public void onError(int error) {
+            // Called when an error occurs
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            // Called when partial recognition results are available
+        }
+
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+            // Called when the SpeechRecognizer is ready for audio input
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            // Called when the recognition results are available
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+            // Called when the RMS dB value of the input audio changes
+        }
+    }
+
+ */
 }
 
