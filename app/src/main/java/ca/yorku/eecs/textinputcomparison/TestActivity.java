@@ -1,7 +1,6 @@
 package ca.yorku.eecs.textinputcomparison;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -47,6 +46,8 @@ public class TestActivity extends Activity {
 
     // Test-wide parameters
     private final static String MYDEBUG = "MYDEBUG";
+    private final static String SPEECHRECOGNITIONLOG = "SPEECHRECOGNITIONLOG";
+    private final static String TEXTCOMPARISONLOG = "TEXTCOMPARISONLOG";
     private final static int PHRASES_LIST_SOURCE = R.raw.phrases;
     private final static int RECORD_AUDIO_REQUEST_CODE = 111;
     private final static int NUMBER_OF_QUESTIONS = 5;
@@ -176,43 +177,43 @@ public class TestActivity extends Activity {
             @Override
             public void onReadyForSpeech(Bundle params) {
                 // Called when the speech recognition is ready to begin.
-                Log.i(MYDEBUG, "onReadyForSpeech");
+                Log.i(SPEECHRECOGNITIONLOG, "onReadyForSpeech");
             }
 
             @Override
             public void onBeginningOfSpeech() {
                 // Called when the user has started to speak.
                 voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
-                Log.i(MYDEBUG, "onBeginningOfSpeech");
+                Log.i(SPEECHRECOGNITIONLOG, "onBeginningOfSpeech");
             }
 
             @Override
             public void onRmsChanged(float rmsdB) {
                 // Called when the volume of the user's speech changes.
-                Log.i(MYDEBUG, "onRmsChanged");
+                Log.i(SPEECHRECOGNITIONLOG, "onRmsChanged");
             }
 
             @Override
             public void onBufferReceived(byte[] bytes) {
-                Log.i(MYDEBUG, "onBufferReceived");
+                Log.i(SPEECHRECOGNITIONLOG, "onBufferReceived");
             }
 
             @Override
             public void onEndOfSpeech() {
                 // Called when the user has finished speaking.
-                Log.i(MYDEBUG, "onEndOfSpeech");
+                Log.i(SPEECHRECOGNITIONLOG, "onEndOfSpeech");
             }
 
             @Override
             public void onError(int error) {
                 // Called when there is an error in the recognition process.
-                Log.i(MYDEBUG, "onError: " + error);
+                Log.i(SPEECHRECOGNITIONLOG, "onError: " + error);
             }
 
             @Override
             public void onResults(Bundle results) {
                 // Called when the speech recognition has produced results.
-                Log.i(MYDEBUG, "onResults");
+                Log.i(SPEECHRECOGNITIONLOG, "onResults");
                 ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 voiceRecognitionText.setText(data.get(0));
                 userVoiceInput = data.get(0);
@@ -222,13 +223,13 @@ public class TestActivity extends Activity {
             @Override
             public void onPartialResults(Bundle partialResults) {
                 // Called when partial recognition results are available.
-                Log.i(MYDEBUG, "onPartialResults");
+                Log.i(SPEECHRECOGNITIONLOG, "onPartialResults");
             }
 
             @Override
             public void onEvent(int eventType, Bundle params) {
                 // Called when a speech recognition event occurs.
-                Log.i(MYDEBUG, "onEvent");
+                Log.i(SPEECHRECOGNITIONLOG, "onEvent");
             }
         });
 
@@ -361,17 +362,27 @@ public class TestActivity extends Activity {
         Otherwise, inform the user of what the application heard them say rather than the correct answer and ask them to try again.
     */
     public void checkUserVoiceInput(String input) {
-        String[] wordstoSay = testPhraseList.get(currentQuestionNumber).toLowerCase().trim().split("\\s+");
+        String[] wordsToSay = testPhraseList.get(currentQuestionNumber).toLowerCase().trim().split("\\s+");
         String[] wordsInInput = input.toLowerCase().trim().split("\\s+");
         boolean allWordsCorrect = true;
         String userWord = "";
         String testWord = "";
+        int receivedWords = 0;
+        int requiredWords = 0;
 
-        for (int i = 0; i < wordsInInput.length; i++) {
-            if (wordstoSay[i] == null) {
+        for (String s : wordsToSay) {
+            requiredWords++;
+        }
+
+        for (String s : wordsInInput) {
+            receivedWords++;
+        }
+
+        for (int i = 0; i < receivedWords - 1; i++) {
+            if (wordsToSay[i] == null || i > requiredWords) {
                 testWord = "null";
             } else {
-                testWord = wordstoSay[i];
+                testWord = wordsToSay[i];
             }
             userWord = wordsInInput[i];
 
@@ -429,6 +440,10 @@ public class TestActivity extends Activity {
             return "zero";
         }
 
+        if (num == 100) {
+            return "hundred";
+        }
+
         if (num == 1000) {
             return "thousand";
         }
@@ -437,25 +452,11 @@ public class TestActivity extends Activity {
             return "invalid number";
         }
 
-        if ((num / 100) > 0) {
-            convertedWord += ones[num / 100] + " hundred ";
-            num %= 100;
-        }
-
         if (num > 0) {
-            if (convertedWord != "") {
-                convertedWord += "and ";
-            }
-
             if (num < 20) {
-                convertedWord += ones[num];
+                convertedWord = ones[num];
             } else {
-                convertedWord += tens[num / 10] + " ";
-                num %= 10;
-
-                if (num > 0) {
-                    convertedWord += ones[num];
-                }
+                convertedWord = tens[num / 10];
             }
         }
 
@@ -538,7 +539,6 @@ public class TestActivity extends Activity {
             // Hide keyboard input field and reveal record button
             userInputField.setVisibility(View.GONE);
             voiceRecognitionText.setVisibility(View.VISIBLE);
-            recordButton.setVisibility(View.VISIBLE);
 
         } else if (currentPhase == VOICE_RECOGNITION) {
             voiceRecognitionFinishTime = System.currentTimeMillis();
@@ -579,6 +579,9 @@ public class TestActivity extends Activity {
      */
     public void clickNextPhase(View view) {
         testPhraseList = generatePhraseSet();
+        if (currentPhase == VOICE_RECOGNITION) {
+            recordButton.setVisibility(View.VISIBLE);
+        }
         textToType.setText(testPhraseList.get(currentQuestionNumber));
         userInputField.setVisibility(View.VISIBLE);
         userInputField.setEnabled(true);
@@ -659,7 +662,7 @@ public class TestActivity extends Activity {
 
             // Check if the length of the new text is less than the length of the previous text. If so, the user has deleted a character using the backspace key, which is not allowed. Undo this.
             if (s.length() < previousText.length()) {
-                Log.i(MYDEBUG, "Backspace detected");
+                Log.i(TEXTCOMPARISONLOG, "Backspace detected");
                 userInputField.setText(previousText);
                 userInputField.setSelection(start + 1);
             }
@@ -672,12 +675,12 @@ public class TestActivity extends Activity {
             }
 
             if (testPhraseList.isEmpty() || currentQuestionNumber >= testPhraseList.size()) {
-                Log.i(MYDEBUG, "Invalid currentQuestionNumber or testPhraseList is empty.");
+                Log.i(TEXTCOMPARISONLOG, "Invalid currentQuestionNumber or testPhraseList is empty.");
                 if (testPhraseList.isEmpty()) {
-                    Log.e(MYDEBUG, "testPhraseList is empty.");
+                    Log.e(TEXTCOMPARISONLOG, "testPhraseList is empty.");
                 }
                 if (currentQuestionNumber >= testPhraseList.size()) {
-                    Log.e(MYDEBUG, "Invalid currentQuestionNumber ");
+                    Log.e(TEXTCOMPARISONLOG, "Invalid currentQuestionNumber ");
                 }
             }
 
@@ -697,16 +700,16 @@ public class TestActivity extends Activity {
             if (indexOfTypedCharacter < currentQuestionPhrase.length() - 1) {
                 // typed character is not last in phrase
                 char correctChar = currentQuestionPhrase.charAt(indexOfTypedCharacter);
-//                Log.i(MYDEBUG, "correctChar: " + correctChar);
+//                Log.i(TEXTCOMPARISONLOG, "correctChar: " + correctChar);
                 char typedChar = s.charAt(indexOfTypedCharacter);
-//                Log.i(MYDEBUG, "typedChar: " + typedChar);
+//                Log.i(TEXTCOMPARISONLOG, "typedChar: " + typedChar);
 
                 if (typedChar != correctChar) {
                     // user typed an incorrect character
                     toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
                     userInputField.removeTextChangedListener(this);
-                    Log.i(MYDEBUG, "incorrect char at indexOfTypedCharacter: " + indexOfTypedCharacter);
-                    Log.i(MYDEBUG, "currentQuestionPhrase.length(): " + currentQuestionPhrase.length());
+                    Log.i(TEXTCOMPARISONLOG, "incorrect char at indexOfTypedCharacter: " + indexOfTypedCharacter);
+                    Log.i(TEXTCOMPARISONLOG, "currentQuestionPhrase.length(): " + currentQuestionPhrase.length());
                     userInputField.setText(currentQuestionPhrase.substring(0, Math.min(indexOfTypedCharacter, currentQuestionPhrase.length())));
                     if (indexOfTypedCharacter < s.length()) {
                         userInputField.setSelection(indexOfTypedCharacter);
@@ -719,8 +722,8 @@ public class TestActivity extends Activity {
                 }
             } else {
                 // typed character is last in phrase
-                Log.i(MYDEBUG, "1 currentQuestionNumber: " + currentQuestionNumber);
-                Log.i(MYDEBUG, "1 testPhraseList.size(): " + testPhraseList.size());
+                Log.i(TEXTCOMPARISONLOG, "1 currentQuestionNumber: " + currentQuestionNumber);
+                Log.i(TEXTCOMPARISONLOG, "1 testPhraseList.size(): " + testPhraseList.size());
                 currentQuestionNumber++;
                 if (currentQuestionNumber <= testPhraseList.size() - 1) {
                     // unused phrases remain in list
@@ -734,14 +737,14 @@ public class TestActivity extends Activity {
                     userInputField.removeTextChangedListener(this);
                     userInputField.setText(new Editable.Factory().newEditable(""));
                     textToType.setText(testPhraseList.get(currentQuestionNumber));
-                    Log.i(MYDEBUG, "changing test to type to: " + testPhraseList.get(currentQuestionNumber));
+                    Log.i(TEXTCOMPARISONLOG, "changing test to type to: " + testPhraseList.get(currentQuestionNumber));
 
                     userInputField.addTextChangedListener(this);
 
                 } else {
                     // no unused phrases remain in list
-                    Log.i(MYDEBUG, "2 currentQuestionNumber: " + currentQuestionNumber);
-                    Log.i(MYDEBUG, "2 testPhraseList.size(): " + testPhraseList.size());
+                    Log.i(TEXTCOMPARISONLOG, "2 currentQuestionNumber: " + currentQuestionNumber);
+                    Log.i(TEXTCOMPARISONLOG, "2 testPhraseList.size(): " + testPhraseList.size());
                     phaseOver = true;
                     errorFound = false;
                     currentQuestionNumber = 0;
