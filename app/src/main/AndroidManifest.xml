@@ -6,6 +6,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -33,9 +39,6 @@
 
         <!-- Results activity -->
         <activity android:name="ca.yorku.eecs.textinputcomparison.ResultsActivity" />
-
-        <!-- Settings activity -->
-        <activity android:name="ca.yorku.eecs.textinputcomparison.SettingsActivity" />
 
     </application>
 
