@@ -39,4 +39,10 @@
 
     </application>
 
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
 </manifest>
