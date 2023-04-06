@@ -61,6 +61,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:text=""
+            android:textSize="20sp"
+            android:textColor="#302F2F"
             android:visibility="gone" />
 
         <Button
@@ -75,12 +77,22 @@
             app:backgroundTint="@null"
             android:visibility="gone"
             app:fontFamily="@font/roboto_light"/>
+        <TextView
+            android:id="@+id/record_label"
+            android:text="Hold to Record"
+            android:textColor="#302F2F"
+            app:fontFamily="@font/roboto_light"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="center"
+            android:visibility="gone"
+            />
 
         <ImageView
             android:id="@+id/record_audio_symbol"
-            android:src="@drawable/ic_microphone"
             android:layout_width="35dp"
             android:layout_height="35dp"
+            android:src="@drawable/ic_microphone"
             android:visibility="gone"
             />
 

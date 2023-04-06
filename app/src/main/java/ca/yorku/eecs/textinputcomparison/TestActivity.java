@@ -98,7 +98,7 @@ public class TestActivity extends Activity {
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
     String previousText, userVoiceInput;
     ArrayList<String> testPhraseList, hapticOffList, hapticOnList, voiceRecognitionList;
-    TextView textToType, voiceRecognitionText;
+    TextView textToType, voiceRecognitionText, recordLabel;
     ImageView recordSymbol;
     EditText userInputField;
     Button nextPhaseButton;
@@ -122,6 +122,7 @@ public class TestActivity extends Activity {
         recordButton = findViewById(R.id.record_audio_button);
         recordButton.setVisibility(View.GONE);
         recordSymbol = findViewById(R.id.record_audio_symbol);
+        recordLabel = findViewById(R.id.record_label);
 
         phraseListTotalCharacters = 0;
         testPhraseList = generatePhraseSet();
@@ -187,8 +188,9 @@ public class TestActivity extends Activity {
 
             @Override
             public void onBeginningOfSpeech() {
+                //Replaced with mic symbol
                 // Called when the user has started to speak.
-                voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
+                //voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
                 Log.i(SPEECHRECOGNITIONLOG, "onBeginningOfSpeech");
             }
 
@@ -246,17 +248,19 @@ public class TestActivity extends Activity {
                     recordSymbol.setVisibility(View.GONE);;
                     Log.i(MYDEBUG, "Record Button unpressed");
                     userSpeechRecognizer.stopListening();
+                    recordLabel.setVisibility(View.VISIBLE);
                 }
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     //Change to checked recording button
                     recordButton.setImageResource(R.drawable.ic_checked);
+                    //Remove record label
+                    recordLabel.setVisibility(View.GONE);
                     //make audio symbol visable
                     recordSymbol.setVisibility(View.VISIBLE);
                     voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
                     recordingAudio = true;
                     Log.i(MYDEBUG, "Record Button pressed");
                     userSpeechRecognizer.startListening(speechRecognizerIntent);
-                    toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
                 }
                 return false;
             }
@@ -600,6 +604,7 @@ public class TestActivity extends Activity {
         testPhraseList = generatePhraseSet();
         if (currentPhase == VOICE_RECOGNITION) {
             recordButton.setVisibility(View.VISIBLE);
+            recordLabel.setVisibility(View.VISIBLE);
         }
         textToType.setText(testPhraseList.get(currentQuestionNumber));
         userInputField.setVisibility(View.VISIBLE);
