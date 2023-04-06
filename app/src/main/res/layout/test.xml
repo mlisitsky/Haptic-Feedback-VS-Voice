@@ -76,13 +76,24 @@
             android:visibility="gone"
             app:fontFamily="@font/roboto_light"/>
 
-        <Button
+        <ImageView
+            android:id="@+id/record_audio_symbol"
+            android:src="@drawable/ic_microphone"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:visibility="gone"
+            />
+
+        <ImageButton
             android:id="@+id/record_audio_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="86dp"
+            android:layout_height="86dp"
             android:layout_margin="16dp"
+            android:background="@null"
+            android:src="@drawable/ic_unchecked"
             android:text="@string/test_record_button_start_text"
-            android:visibility="gone" />
+            android:scaleType="fitCenter"
+            />
 
 
     </LinearLayout>

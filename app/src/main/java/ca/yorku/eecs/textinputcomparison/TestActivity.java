@@ -20,6 +20,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -97,8 +99,10 @@ public class TestActivity extends Activity {
     String previousText, userVoiceInput;
     ArrayList<String> testPhraseList, hapticOffList, hapticOnList, voiceRecognitionList;
     TextView textToType, voiceRecognitionText;
+    ImageView recordSymbol;
     EditText userInputField;
-    Button nextPhaseButton, recordButton;
+    Button nextPhaseButton;
+    ImageButton recordButton;
     Vibrator vib;
     ToneGenerator toneGenerator;
     UserInputListener userTextChangedListener;
@@ -117,6 +121,7 @@ public class TestActivity extends Activity {
         nextPhaseButton.setVisibility(View.GONE);
         recordButton = findViewById(R.id.record_audio_button);
         recordButton.setVisibility(View.GONE);
+        recordSymbol = findViewById(R.id.record_audio_symbol);
 
         phraseListTotalCharacters = 0;
         testPhraseList = generatePhraseSet();
@@ -237,20 +242,29 @@ public class TestActivity extends Activity {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    recordButton.setText(R.string.test_record_button_start_text);
+                    recordButton.setImageResource(R.drawable.ic_unchecked);
+                    recordSymbol.setVisibility(View.GONE);;
                     Log.i(MYDEBUG, "Record Button unpressed");
                     userSpeechRecognizer.stopListening();
                 }
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    recordButton.setText(R.string.test_record_button_stop_text);
+                    //Change to checked recording button
+                    recordButton.setImageResource(R.drawable.ic_checked);
+                    //make audio symbol visable
+                    recordSymbol.setVisibility(View.VISIBLE);
                     voiceRecognitionText.setText(R.string.test_recording_in_progress_text);
                     recordingAudio = true;
                     Log.i(MYDEBUG, "Record Button pressed");
                     userSpeechRecognizer.startListening(speechRecognizerIntent);
+                    toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
                 }
                 return false;
             }
         };
+
+        //Setup record button
+        recordButton.setImageResource(R.drawable.ic_unchecked);
+        recordButton.setVisibility(View.GONE);
 
         recordButton.setOnTouchListener(userOnTouchListener);
     }
