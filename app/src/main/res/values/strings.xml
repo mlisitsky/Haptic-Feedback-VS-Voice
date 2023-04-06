@@ -4,7 +4,8 @@
     <string name="ok_button_text">OK</string>
     <string name="cancel_button_text">Cancel</string>
 
-    <string name="main_instructions_text">Welcome to our text input comparison test. You will be shown three sets of five phrases, and you will be expected to enter back the same phrases using the given input method. \n \n Note that if you have haptic feedback (vibration) already turned on for your keyboard of choice, please go to Settings > Vibration to turn it off  </string>
+    <string name="main_instructions_text">Welcome to our text input comparison test. You will be shown three sets of five phrases, and you will be expected to enter back the same phrases using the given input method.</string>
+    <string name="note_instructions_text"><i>Note that if you have haptic feedback (vibration) already turned on for your keyboard of choice, please go to Settings -> Vibration to turn it off.</i></string>
     <string name="main_start_button_text">Start Comparison Test</string>
     <string name="main_settings_button_text">Settings</string>
     <string name="main_test_result_button_text">Results Template</string>
@@ -26,5 +27,5 @@
     <string name="results_voice_detection_title_text">Voice Detection</string>
     <string name="results_summary_title_text">Summary</string>
 
-    <string name="example_text">Insert Text Here</string>
+    <string name="example_text"><i>Insert Text Here</i></string>
 </resources>
