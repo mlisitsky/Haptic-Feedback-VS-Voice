@@ -24,17 +24,4 @@ public class MainActivity extends Activity {
         Intent i = new Intent(getApplicationContext(), TestActivity.class);
         startActivity(i);
     }
-
-    public void clickSettings(View view) {
-
-        Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
-        startActivity(i);
-    }
-
-    // This is for testing only, will delete later
-    public void clickTestResults(View view) {
-
-        Intent i = new Intent(getApplicationContext(), ResultsActivity.class);
-        startActivity(i);
-    }
 }

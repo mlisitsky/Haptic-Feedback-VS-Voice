@@ -68,23 +68,6 @@
             app:backgroundTint="@null"
             app:fontFamily="@font/roboto_light"/>
 
-        <Button
-            android:id="@+id/settings_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="clickSettings"
-            android:visibility="gone"
-            android:text="@string/main_settings_button_text" />
-
-        <!-- For Testing Purposes, Will Remove This Later -->
-        <Button
-            android:id="@+id/test_results_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="clickTestResults"
-            android:visibility="gone"
-            android:text="@string/main_test_result_button_text" />
-
     </LinearLayout>
 
 </LinearLayout>
