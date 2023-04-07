@@ -64,7 +64,8 @@
             android:layout_marginTop="100dp"
             android:textSize="20sp"
             android:textColor="#302F2F"
-            android:text="" />
+            android:fontFamily="@font/roboto_light"
+            android:text="Enter Text Here" />
 
         <TextView
             android:id="@+id/voice_recognition_text"
