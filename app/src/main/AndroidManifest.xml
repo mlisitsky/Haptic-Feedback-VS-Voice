@@ -40,6 +40,15 @@
         <!-- Results activity -->
         <activity android:name="ca.yorku.eecs.textinputcomparison.ResultsActivity" />
 
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 
 </manifest>

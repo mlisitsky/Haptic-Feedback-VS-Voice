@@ -5,41 +5,68 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#edf2f4"
     tools:context="ca.yorku.eecs.textinputcomparison.MainActivity">
 
     <TextView
         android:id="@+id/main_page_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#ff234567"
+        android:background="#507dbc"
         android:gravity="center_horizontal"
-        android:paddingBottom="20dp"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp"
         android:paddingTop="20dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="20dp"
         android:text="@string/main_title_text"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="25sp"/>
+        android:textColor="#FFF"
+        android:textSize="22sp"
+        app:fontFamily="@font/roboto_light" />
+
+    <TextView
+        android:id="@+id/main_instruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:text="@string/main_instructions_text"
+        android:textSize="20sp"
+        app:fontFamily="@font/roboto_light"
+        android:textColor="#302F2F"/>
+    <TextView
+        android:id="@+id/note_instruction"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="13sp"
+        android:text="@string/note_instructions_text"
+        app:fontFamily="@font/roboto_light"
+        android:textColor="#302F2F"/>
 
     <LinearLayout
         android:orientation="vertical"
         android:paddingTop="20dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:gravity="center | bottom"
+        android:layout_marginBottom="60dp">
 
-        <TextView
-            android:id="@+id/main_instruction"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="@string/main_instructions_text" />
 
         <Button
             android:id="@+id/start_button"
-            android:layout_width="match_parent"
+            android:layout_width="267dp"
             android:layout_height="wrap_content"
+            android:background="@drawable/btn_shape_round"
+            android:bottom="0dp"
             android:onClick="clickStart"
-            android:text="@string/main_start_button_text" />
+            android:text="@string/main_start_button_text"
+            app:backgroundTint="@null"
+            app:fontFamily="@font/roboto_light"/>
 
     </LinearLayout>
 

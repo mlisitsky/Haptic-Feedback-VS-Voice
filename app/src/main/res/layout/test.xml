@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#edf2f4">
 
     <TextView
         android:id="@+id/main_page_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#ff234567"
+        android:background="#507dbc"
         android:gravity="center_horizontal"
         android:paddingBottom="20dp"
         android:paddingLeft="10dp"
@@ -17,14 +19,16 @@
         android:paddingTop="20dp"
         android:text="@string/main_title_text"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="25sp"/>
+        android:textColor="#FFF"
+        android:textSize="22sp"
+        android:fontFamily="@font/roboto_light" />
 
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="60dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:textSize="25sp">
@@ -33,14 +37,22 @@
             android:id="@+id/text_to_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto_light"
+            android:gravity="center"
+            android:text="@string/example_text"
+            android:textSize="20sp"
+            android:textColor="#302F2F"
             android:layout_margin="16dp"
-            android:text="@string/example_text" />
+            />
 
         <EditText
             android:id="@+id/input_field"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:layout_marginTop="100dp"
+            android:textSize="20sp"
+            android:textColor="#302F2F"
             android:text="" />
 
         <TextView
@@ -48,27 +60,52 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:visibility="gone"
-            android:text="" />
+            android:text=""
+            android:textSize="20sp"
+            android:textColor="#302F2F"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/next_phase_button"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:visibility="gone"
+            android:background="@drawable/btn_shape_round"
+            android:backgroundTint="@null"
+            android:onClick="clickNextPhase"
             android:text="@string/ok_button_text"
-            android:onClick="clickNextPhase"/>
-
-        <Button
-            android:id="@+id/record_audio_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            app:backgroundTint="@null"
             android:visibility="gone"
-            android:text="@string/test_record_button_start_text"
+            app:fontFamily="@font/roboto_light"/>
+        <TextView
+            android:id="@+id/record_label"
+            android:text="Hold to Record"
+            android:textColor="#302F2F"
+            app:fontFamily="@font/roboto_light"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="center"
+            android:visibility="gone"
             />
 
+        <ImageView
+            android:id="@+id/record_audio_symbol"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_microphone"
+            android:visibility="gone"
+            />
+
+        <ImageButton
+            android:id="@+id/record_audio_button"
+            android:layout_width="86dp"
+            android:layout_height="86dp"
+            android:layout_margin="16dp"
+            android:background="@null"
+            android:src="@drawable/ic_unchecked"
+            android:text="@string/test_record_button_start_text"
+            android:scaleType="fitCenter"
+            />
 
 
     </LinearLayout>
