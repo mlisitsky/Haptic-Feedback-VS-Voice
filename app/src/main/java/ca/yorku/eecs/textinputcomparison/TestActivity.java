@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
@@ -98,7 +99,7 @@ public class TestActivity extends Activity {
     float hapticOffWPM, hapticOffErrorRate, hapticOnWPM, hapticOnErrorRate, voiceRecognitionWPM, voiceRecognitionErrorRate;
     String previousText, userVoiceInput;
     ArrayList<String> testPhraseList, hapticOffList, hapticOnList, voiceRecognitionList;
-    TextView textToType, voiceRecognitionText, recordLabel;
+    TextView textToType, voiceRecognitionText, recordLabel, timeLabel;
     ImageView recordSymbol;
     EditText userInputField;
     Button nextPhaseButton;
@@ -107,6 +108,8 @@ public class TestActivity extends Activity {
     ToneGenerator toneGenerator;
     UserInputListener userTextChangedListener;
     SpeechRecognizer userSpeechRecognizer;
+    CountDownTimer countDownTimer;
+    int currentPhaseTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +126,7 @@ public class TestActivity extends Activity {
         recordButton.setVisibility(View.GONE);
         recordSymbol = findViewById(R.id.record_audio_symbol);
         recordLabel = findViewById(R.id.record_label);
+        timeLabel = findViewById(R.id.time);
 
         phraseListTotalCharacters = 0;
         testPhraseList = generatePhraseSet();
@@ -271,6 +275,29 @@ public class TestActivity extends Activity {
         recordButton.setVisibility(View.GONE);
 
         recordButton.setOnTouchListener(userOnTouchListener);
+
+
+        //Timer stuff
+        currentPhaseTime = 0;
+        countDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+            @Override
+            public void onTick(long l) {
+                currentPhaseTime++;
+                long millis = currentPhaseTime;
+                int seconds = (int) (millis/60);
+                int minutes = seconds / 60;
+                String timeString = String.format("%02d:%02d", seconds, millis);
+                timeLabel.setText(timeString);
+                Log.i("COUNT", currentPhaseTime + "");
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+
+        countDownTimer.start();
     }
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -550,6 +577,9 @@ public class TestActivity extends Activity {
             currentPhase = HAPTIC_ON;
             textToType.setText(R.string.test_next_phase_warning_text_haptic_off);
             hapticOffList.addAll(testPhraseList);
+            countDownTimer.cancel();
+            currentPhaseTime = 0;
+            //Reset Timer
 
         } else if (currentPhase == HAPTIC_ON) {
             hapticOnFinishTime = System.currentTimeMillis();
@@ -563,7 +593,13 @@ public class TestActivity extends Activity {
             userInputField.setVisibility(View.GONE);
             voiceRecognitionText.setVisibility(View.VISIBLE);
 
+            //Reset timer
+            countDownTimer.cancel();
+            currentPhaseTime = 0;
+
         } else if (currentPhase == VOICE_RECOGNITION) {
+            countDownTimer.cancel();
+            currentPhaseTime = 0;
             voiceRecognitionFinishTime = System.currentTimeMillis();
             voiceRecognitionStartTime = currentStartTime;
             voiceRecognitionErrors = currentErrors;
@@ -615,6 +651,7 @@ public class TestActivity extends Activity {
         userInputField.setText("");
         userInputField.addTextChangedListener(userTextChangedListener);
         phaseOver = false;
+        countDownTimer.start();
     }
 
     public void getResults() {
